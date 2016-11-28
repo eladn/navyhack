@@ -20,7 +20,7 @@ decoder = lambda t:t.decode()
 
 def addIntoDb(mmsi, values):
     values = list(map(decoder, values))
-    sValues = "(%s, %s, %s, %s, %s, %s);" \
+    sValues = "(%s, %s, %s, %s, %s, %s)" \
             %(mmsi, values[LAT], values[LONG], values[SPEED], values[COURSE], values[UPDATE_TIME])
     return sValues
 def query(db):
@@ -35,8 +35,10 @@ def query(db):
             lastUpdate[mmsi.decode()] = vals[UPDATE_TIME].decode()
             st += addIntoDb(mmsi.decode(), vals)+","
         st = st[:-1]
-        db.execute(st+";")
-        db.commit()
+        print st[0:100]
+        print st[-100:]
+        # db.execute(st+";")
+        # db.commit()
 def init(): #TODO
     # select mmsi, update from table parse it into lastUpdate[mmsi] = update
     pass
