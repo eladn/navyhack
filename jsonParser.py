@@ -1,3 +1,4 @@
+import sys
 import MySQLdb
 from secrets import *
 import json
@@ -5,6 +6,8 @@ from urllib3 import PoolManager
 import time
 #from collections import namedtuple
 from datetime import datetime
+from pytz import timezone
+
 from utils import safe_cast
 
 MAX_NR_ROWS_PER_UPDATE = 10000
@@ -17,6 +20,7 @@ COURSE = 3
 REPORTED_UPDATE_TIME = 6
 GRABBER_UPDATE_TIME = 7
 
+il_tz = timezone('Israel')
 
 #f = open("parser.txt","w")
 decoder = lambda t:t.decode()
@@ -46,7 +50,7 @@ def grab_data_from_shipfinder(ships):
     nr_new_items = 0
     nr_updated_items = 0
 
-    now = datetime.now()
+    now = datetime.now(il_tz)
     for mmsi, vals in ships_data.items():
         mmsi = safe_cast(mmsi, int)
         if mmsi is None:
@@ -96,11 +100,12 @@ def convert_ship_data_to_sql_insert_values(mmsi, ship_data):
 
 def update_db(ships, db):
     if db is None:
-        return None
+        return 0
 
     if len(ships['modified']) < 1:
-        return None  # nothing to update
+        return 0  # nothing to update
 
+    tot_affected_rows = 0
     while len(ships['modified']) > 0:
         rows = 0
         st = "INSERT INTO ship_tracks(mmsi,reported_time,last_grab_time,lat,lon,speed,course) VALUES "
@@ -120,24 +125,29 @@ def update_db(ships, db):
 
         try:
             cursor = db.cursor()
-            affected_count = cursor.execute(st + ";")
+            tot_affected_rows += cursor.execute(st + ";")
             db.commit()
         except MySQLdb.IntegrityError:
-            print("failed to insert values.")
+            print("failed to insert values.", file=sys.stderr)
         finally:
             cursor.close()
+    return tot_affected_rows
 
 
 def iterative_interrupted_data_grabber(ships, db, sleep_time=5):
     iteration = 0
     while True:
         iteration += 1
-        print("Running loop number %s                                                             " % iteration, end="\r")
+        print("Running loop number %s                                                       " % iteration, end="\r")
+
         stats = grab_data_from_shipfinder(ships)
         if stats is not None:
-            print("Running loop number {}  [shipfinder: tot:{} updated:{} new:{}]".format(
+            print("Running loop number {}  [ shipfinder: tot:{} updated:{} new:{} ]".format(
                 iteration, stats['nr_items'], stats['nr_updated_items'], stats['nr_new_items']), end="\r")
-        update_db(ships, db)
+
+        affected_rows = update_db(ships, db)
+        print("Running loop number {}  [ db affected rows: {} ]                             ".format(
+            iteration, affected_rows), end="\r")
         time.sleep(sleep_time)
 
 
@@ -168,7 +178,7 @@ if __name__ == "__main__":
     else:
         db = db_connect()
         if db is None:
-            print('cant connect to elad`s db, blame him!#!')
+            print('cant connect to elad`s db, blame him!#!', file=sys.stderr)
             exit()
         print('db connection succeeded')
 
