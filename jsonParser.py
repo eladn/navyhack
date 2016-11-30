@@ -30,6 +30,7 @@ sleep_minutes = {'shipfinder': 1}
 def grab_data_from_shipfinder(ships):
     lastUpdate = ships['last_update']
     shipSet = ships['avail']
+    print(shipSet)
     url = "http://shipfinder.co/endpoints/shipDeltaUpdate.php"
     response = httpPool.request('GET', url)
     if response.status is not 200:
@@ -56,9 +57,7 @@ def grab_data_from_shipfinder(ships):
         if mmsi is None:
             # TODO: log it somehow
             continue
-        if mmsi not in shipSet:
-            ships['avail'].add(mmsi)
-            ships['infoSearch'].add(mmsi)
+        if mmsi not in lastUpdate:
             nr_new_items += 1
             lastUpdate[mmsi] = dict()
         elif lastUpdate[mmsi][REPORTED_UPDATE_TIME] == safe_cast(vals[REPORTED_UPDATE_TIME], int):
@@ -66,6 +65,9 @@ def grab_data_from_shipfinder(ships):
             continue
         else:
             nr_updated_items += 1
+        if mmsi not in shipSet:
+            ships['avail'].add(mmsi)
+            ships['infoSearch'].add(mmsi)
 
         ship = lastUpdate[mmsi]
         ship[LAT] = safe_cast(vals[LAT], float)
@@ -79,12 +81,17 @@ def grab_data_from_shipfinder(ships):
 
 def updateInfoSearch(ships):
     llen = len(ships['infoSearch'])
+    newInfo = []
+    st = "INSERT INTO ship_info(mmsi,reported_time,last_grab_time,lat,lon,speed,course) VALUES "
     if(llen > 5):
         llen = 5
     infoToSearch = list(ships['infoSearch'])[:llen]
     for mmsi in infoToSearch:
         grab_data_for_specific_ship(ships,mmsi)
+        ships['infoSearch'].remove(mmsi)
+        ships['infoModified'].add(mmsi)
         time.sleep(0.5)
+    return newInfo, llen
 
 
 
@@ -94,6 +101,7 @@ def grab_data_for_specific_ship(ships, mmsi):
     NAME = 0
     DESTINATION = 3
     NAV_STATUS = 4
+
     url = "http://www.myshiptracking.com/requests/vesseldetails.php?type=json&mmsi="+str(mmsi)
     print(url)
     response = httpPool.request('GET', url)
@@ -113,17 +121,9 @@ def grab_data_for_specific_ship(ships, mmsi):
     results[DESTINATION] = safe_cast(j["DESTINATION"], str)
     results[NAV_STATUS] = safe_cast(j["NAV_STATUS"], str)
     ships['information'][mmsi] = results
+    return tuple(results)
 
 
-
-
-
-
-
-
-def init(): #TODO
-    # select mmsi, update from table parse it into lastUpdate[mmsi] = update
-    pass
 
 
 def db_connect():
@@ -175,6 +175,20 @@ def update_db(ships, db):
             print("failed to insert values.", file=sys.stderr)
         finally:
             cursor.close()
+    infoList = []
+    for ship_mmsi in ships['infoModified']:
+        infoList.append(tuple([ship_mmsi] + ships['information'][ship_mmsi]))
+    ships['infoModified'] = set()
+    cursor = db.cursor()
+    print(infoList)
+    try:
+        cursor.executemany("INSERT INTO ship_info(mmsi, shipname, flag, vessel_type, destination, nav_status) "
+                           "VALUES (%s,%s,%s,%s,%s,%s)",infoList)
+        db.commit()
+    except Exception as e:
+        print(e, file=sys.stderr)
+    finally:
+        cursor.close()
     return tot_affected_rows
 
 
@@ -185,10 +199,10 @@ def iterative_interrupted_data_grabber(ships, db, sleep_time=5):
         print("Running loop number %s                                                       " % iteration, end="\r")
 
         stats = grab_data_from_shipfinder(ships)
-        updateInfoSearch(ships)
-        if stats is not None:
-            print("Running loop number {}  [ shipfinder: tot:{} updated:{} new:{} ]".format(
-                iteration, stats['nr_items'], stats['nr_updated_items'], stats['nr_new_items']), end="\r")
+        infoStats = updateInfoSearch(ships)
+        if stats is not None or infoStats[1] is not 0:
+            print("Running loop number {}  [ shipfinder: tot:{} updated:{} new:{} infoFind{} ]".format(
+                iteration, stats['nr_items'], stats['nr_updated_items'], stats['nr_new_items'], infoStats[1]), end="\r")
 
         if db is not None:
             affected_rows = update_db(ships, db)
@@ -203,19 +217,22 @@ def create_ships_ds(db):
         'last_update': dict(),
         'information': dict(),
         'modified': set(),
+        'infoModified': set(),
         'avail': set(),
         'infoSearch': set()
     }
+    if db is None:
+        return d
     queryHistoryShips = "SELECT DISTINCT mmsi from ship_tracks"
     queryInfoShips = "SELECT DISTINCT mmsi from ship_info"
 
-    cursor = db.execute(queryHistoryShips)
+    cursor = db.cursor()
+    cursor.execute(queryHistoryShips)
     ### parse cursor
-    d["avail"] = cursor.fetchall()
-
-    cursor = db.execute(queryInfoShips)
-
-    d["infoSearch"] = d["avail"] - cursor.fetchall()
+    changer = lambda x:x[0]
+    d['avail'] = set(changer(row) for row in cursor.fetchall())
+    cursor.execute(queryInfoShips)
+    d['infoSearch'] = d['avail'].difference(set(changer(row) for row in cursor.fetchall()))
 
     return d
 
@@ -245,7 +262,7 @@ if __name__ == "__main__":
             exit()
         print('db connection succeeded')
 
-    ships = create_ships_ds()
+    ships = create_ships_ds(db)
     iterative_interrupted_data_grabber(ships, db, args.sleep)
 
 
