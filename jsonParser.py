@@ -22,7 +22,6 @@ GRABBER_UPDATE_TIME = 7
 
 il_tz = timezone('Israel')
 
-#f = open("parser.txt","w")
 decoder = lambda t:t.decode()
 
 httpPool = PoolManager()
@@ -59,7 +58,7 @@ def grab_data_from_shipfinder(ships):
         if mmsi not in lastUpdate:
             nr_new_items += 1
             lastUpdate[mmsi] = dict()
-        elif lastUpdate[mmsi][REPORTED_UPDATE_TIME] is safe_cast(vals[REPORTED_UPDATE_TIME], int):
+        elif lastUpdate[mmsi][REPORTED_UPDATE_TIME] == safe_cast(vals[REPORTED_UPDATE_TIME], int):
             lastUpdate[mmsi][GRABBER_UPDATE_TIME] = now
             continue
         else:
@@ -145,9 +144,11 @@ def iterative_interrupted_data_grabber(ships, db, sleep_time=5):
             print("Running loop number {}  [ shipfinder: tot:{} updated:{} new:{} ]".format(
                 iteration, stats['nr_items'], stats['nr_updated_items'], stats['nr_new_items']), end="\r")
 
-        affected_rows = update_db(ships, db)
-        print("Running loop number {}  [ db affected rows: {} ]                             ".format(
-            iteration, affected_rows), end="\r")
+        if db is not None:
+            affected_rows = update_db(ships, db)
+            print("Running loop number {}  [ db affected rows: {} ]                             ".format(
+                iteration, affected_rows), end="\r")
+
         time.sleep(sleep_time)
 
 
