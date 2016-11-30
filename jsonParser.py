@@ -30,7 +30,7 @@ sleep_minutes = {'shipfinder': 1}
 def grab_data_from_shipfinder(ships):
     lastUpdate = ships['last_update']
     shipSet = ships['avail']
-    print(shipSet)
+    # print(shipSet)
     url = "http://shipfinder.co/endpoints/shipDeltaUpdate.php"
     response = httpPool.request('GET', url)
     if response.status is not 200:
@@ -103,7 +103,7 @@ def grab_data_for_specific_ship(ships, mmsi):
     NAV_STATUS = 4
 
     url = "http://www.myshiptracking.com/requests/vesseldetails.php?type=json&mmsi="+str(mmsi)
-    print(url)
+    # print(url)
     response = httpPool.request('GET', url)
     if response.status is not 200:
         return None
@@ -180,7 +180,7 @@ def update_db(ships, db):
         infoList.append(tuple([ship_mmsi] + ships['information'][ship_mmsi]))
     ships['infoModified'] = set()
     cursor = db.cursor()
-    print(infoList)
+    # print(infoList)
     try:
         cursor.executemany("INSERT INTO ship_info(mmsi, shipname, flag, vessel_type, destination, nav_status) "
                            "VALUES (%s,%s,%s,%s,%s,%s)",infoList)
