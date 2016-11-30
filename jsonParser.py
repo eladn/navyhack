@@ -22,6 +22,7 @@ GRABBER_UPDATE_TIME = 7
 decoder = lambda t:t.decode()
 
 httpPool = PoolManager()
+sleep_minutes = {'shipfinder': 1}
 
 def grab_data_from_shipfinder(ships):
     lastUpdate = ships['last_update']
@@ -30,9 +31,15 @@ def grab_data_from_shipfinder(ships):
     if response.status is not 200:
         return None
 
-    j = json.loads(response.data.decode('utf-8'))
+    try:
+        j = json.loads(response.data.decode('utf-8'))
+        # TODO: maybe try to change the sleep time here
+    except Exception:
+        return None
+
     ships_data = j['ships']
-    if ships_data is None or len(ships_data) < 1: return None
+    if ships_data is None or len(ships_data) < 1:
+        return None
 
     # for statics
     nr_items = len(ships_data)
@@ -88,6 +95,9 @@ def convert_ship_data_to_sql_insert_values(mmsi, ship_data):
 
 
 def update_db(ships, db):
+    if db is None:
+        return None
+
     if len(ships['modified']) < 1:
         return None  # nothing to update
 
@@ -137,21 +147,33 @@ def create_ships_ds():
         'modified': set()
     }
 
-if __name__ == "__main__":
-    db = db_connect()
-    if db is None:
-        print('cant connect to elad`s db, blame him!#!')
-        exit()
-    print('db connection succeeded')
 
-    #print('2016 - 11 - 30 14:39:55.192458'.strftime('%Y-%m-%d %H:%M:%S'))
-    #st = "INSERT INTO ship_tracks(mmsi,reported_time,lat,long,speed,course) VALUES(376832000, '2016 - 11 - 30 14:39:55.192458', 10.3584, -61.5, 0, 0);"
-    #cursor = db.cursor()
-    #cursor.execute(st )
-    #exit()
+DEFAULT_SLEEP_SEC = 60
+def args_parser():
+    import argparse
+    parser = argparse.ArgumentParser(description='Grabber for naval data.')
+    parser.add_argument('--nodb', help='do not update db.', action="store_true")
+    parser.add_argument('--sleep', default=DEFAULT_SLEEP_SEC, type=int, choices=range(5, 60*20),
+                        metavar="[{}-{}]".format(5, 60*20), help='sleep time between requests.')
+    return parser
+
+
+if __name__ == "__main__":
+    parser = args_parser()
+    args = parser.parse_args()
+
+    db = None
+    if args.nodb:
+        print('no db updated option selected.')
+    else:
+        db = db_connect()
+        if db is None:
+            print('cant connect to elad`s db, blame him!#!')
+            exit()
+        print('db connection succeeded')
 
     ships = create_ships_ds()
-    iterative_interrupted_data_grabber(ships, db)
+    iterative_interrupted_data_grabber(ships, db, args.sleep)
 
 
 
