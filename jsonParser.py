@@ -29,6 +29,7 @@ sleep_minutes = {'shipfinder': 1}
 
 def grab_data_from_shipfinder(ships):
     lastUpdate = ships['last_update']
+    shipSet = ships['avail']
     url = "http://shipfinder.co/endpoints/shipDeltaUpdate.php"
     response = httpPool.request('GET', url)
     if response.status is not 200:
@@ -55,7 +56,9 @@ def grab_data_from_shipfinder(ships):
         if mmsi is None:
             # TODO: log it somehow
             continue
-        if mmsi not in lastUpdate:
+        if mmsi not in shipSet:
+            ships['avail'].add(mmsi)
+            ships['infoSearch'].add(mmsi)
             nr_new_items += 1
             lastUpdate[mmsi] = dict()
         elif lastUpdate[mmsi][REPORTED_UPDATE_TIME] == safe_cast(vals[REPORTED_UPDATE_TIME], int):
@@ -72,8 +75,51 @@ def grab_data_from_shipfinder(ships):
         ship[REPORTED_UPDATE_TIME] = safe_cast(vals[REPORTED_UPDATE_TIME], int)
         ship[GRABBER_UPDATE_TIME] = now
         ships['modified'].add(mmsi)  # mark it as changed so a db update will occur
-
     return {'nr_items': nr_items, 'nr_new_items': nr_new_items, 'nr_updated_items': nr_updated_items}
+
+def updateInfoSearch(ships):
+    llen = len(ships['infoSearch'])
+    if(llen > 5):
+        llen = 5
+    infoToSearch = list(ships['infoSearch'])[:llen]
+    for mmsi in infoToSearch:
+        grab_data_for_specific_ship(ships,mmsi)
+        time.sleep(0.5)
+
+
+
+def grab_data_for_specific_ship(ships, mmsi):
+    TYPE = 2
+    FLAG = 1
+    NAME = 0
+    DESTINATION = 3
+    NAV_STATUS = 4
+    url = "http://www.myshiptracking.com/requests/vesseldetails.php?type=json&mmsi="+str(mmsi)
+    print(url)
+    response = httpPool.request('GET', url)
+    if response.status is not 200:
+        return None
+    try:
+        j = json.loads(response.data.decode('utf-8'))
+        # TODO: maybe try to change the sleep time here
+    except Exception:
+        return None
+
+    j = j["V"]
+    results = [""]*5
+    results[TYPE] = safe_cast(j["VESSEL_TYPE"], str)
+    results[FLAG] = safe_cast(j["FLAG"], str)
+    results[NAME] = safe_cast(j["NAME"], str)
+    results[DESTINATION] = safe_cast(j["DESTINATION"], str)
+    results[NAV_STATUS] = safe_cast(j["NAV_STATUS"], str)
+    ships['information'][mmsi] = results
+
+
+
+
+
+
+
 
 def init(): #TODO
     # select mmsi, update from table parse it into lastUpdate[mmsi] = update
@@ -88,7 +134,6 @@ def db_connect():
 
 
 def convert_ship_data_to_sql_insert_values(mmsi, ship_data):
-    #values = list(map(decoder, ship_data))  # already decoded
     values = ship_data
     sValues = "({}, '{}', '{}', {}, {}, {}, {})".format(
                 mmsi, datetime.fromtimestamp(values[REPORTED_UPDATE_TIME]).strftime('%Y-%m-%d %H:%M:%S'),
@@ -140,6 +185,7 @@ def iterative_interrupted_data_grabber(ships, db, sleep_time=5):
         print("Running loop number %s                                                       " % iteration, end="\r")
 
         stats = grab_data_from_shipfinder(ships)
+        updateInfoSearch(ships)
         if stats is not None:
             print("Running loop number {}  [ shipfinder: tot:{} updated:{} new:{} ]".format(
                 iteration, stats['nr_items'], stats['nr_updated_items'], stats['nr_new_items']), end="\r")
@@ -152,11 +198,27 @@ def iterative_interrupted_data_grabber(ships, db, sleep_time=5):
         time.sleep(sleep_time)
 
 
-def create_ships_ds():
-    return {
+def create_ships_ds(db):
+    d = {
         'last_update': dict(),
-        'modified': set()
+        'information': dict(),
+        'modified': set(),
+        'avail': set(),
+        'infoSearch': set()
     }
+    queryHistoryShips = "SELECT DISTINCT mmsi from ship_tracks"
+    queryInfoShips = "SELECT DISTINCT mmsi from ship_info"
+
+    cursor = db.execute(queryHistoryShips)
+    ### parse cursor
+    d["avail"] = cursor.fetchall()
+
+    cursor = db.execute(queryInfoShips)
+
+    d["infoSearch"] = d["avail"] - cursor.fetchall()
+
+    return d
+
 
 
 DEFAULT_SLEEP_SEC = 60
