@@ -22,19 +22,19 @@ points[0][6] - mmsi
 points[0][7] - label
 '''
 
-def simplePlot(points = collectFiles("bestPickleEver.txt")):
+def simplePlot(points):
     for i in range(len(points)):
         x = points[i][1]
         y = points[i][0]
         print (points[i][3])
         if (len(x) > 10 and points[i][3] !=0):
-            print len(x), len(y), points[i][3]
+            print (len(x), len(y), points[i][3])
             plt.figure(i)
             plt.title("mmsi: "+ str(points[i][6]))
             plt.plot(x,y) 
             
 
-def speedClustering(points = collectFiles("bestPickleEver.txt"), 
+def speedClustering(points,
                     clusters = 3 ):
     speeds = []
     for i in range(len(points)):
@@ -46,7 +46,7 @@ def speedClustering(points = collectFiles("bestPickleEver.txt"),
     return [kmeans, X, clusters]
     
     
-def courseClustering(points = collectFiles("bestPickleEver.txt"), 
+def courseClustering(points,
                     clusters = 3 ):
     speeds = []
     for i in range(len(points)):
@@ -57,7 +57,7 @@ def courseClustering(points = collectFiles("bestPickleEver.txt"),
     kmeans = KMeans(n_clusters=clusters, random_state=0).fit(X)
     return [kmeans, X, clusters]
     
-def speedAndCourse(points = collectFiles("bestPickleEver.txt"), 
+def speedAndCourse(points,
                     clusters = 5 ):
     speeds = []
     for i in range(len(points)):
@@ -69,7 +69,8 @@ def speedAndCourse(points = collectFiles("bestPickleEver.txt"),
     return [kmeans, X, clusters]
 
 
-def locationVector(points = collectFiles("bestPickleEver.txt"), 
+# def locationVector(points = collectFiles("bestPickleEver.txt"),
+def locationVector(points,
                     clusters = 5 ):
     speeds = []
     for i in range(len(points)):
@@ -81,13 +82,14 @@ def locationVector(points = collectFiles("bestPickleEver.txt"),
     return [kmeans, X, clusters]
     
 
-def makeSupervisedData(points = collectFiles("bestPickleEver.txt")):
+def makeSupervisedData(points):
+    pass
     
     
     
 
     
 
-points = collectFiles("a")
-#speedClustering(points)
-#simplePlot(points)
+# points = collectFiles("a")
+# speedClustering(points)
+# simplePlot(points)
