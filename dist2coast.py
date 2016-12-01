@@ -1,5 +1,5 @@
 from utils import safe_cast
-from math import round
+from numpy import around
 import sys
 
 def get_dist2coast_dict(filename = 'data/dist2coast.txt'):
@@ -18,7 +18,7 @@ def get_dist2coast_dict(filename = 'data/dist2coast.txt'):
 
 
 def pos_to_04_res(lat, lon):
-    return round(lat*(5/2))*0.4, round(lon*(5/2))*0.4
+    return around(lat*(5/2))*0.4, around(lon*(5/2))*0.4
 
 def dist2coast(dist2coast_dict, lat, lon):
     return dist2coast_dict(pos_to_04_res(lat, lon))
