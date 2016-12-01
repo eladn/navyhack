@@ -1,3 +1,5 @@
+import MySQLdb
+from secrets import *
 
 def safe_cast(val, to_type, default=None):
     try:

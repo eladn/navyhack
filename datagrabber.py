@@ -1,6 +1,5 @@
 import sys
 import MySQLdb
-from secrets import *
 import json
 from urllib3 import PoolManager
 import time
