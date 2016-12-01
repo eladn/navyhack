@@ -11,6 +11,7 @@ from pytz import timezone
 from utils import safe_cast
 
 MAX_NR_ROWS_PER_UPDATE = 10000
+MAX_NR_SHIPS_INFO_GRAB = 20
 
 MMSI = 0
 LAT = 0
@@ -82,15 +83,12 @@ def grab_data_from_shipfinder(ships):
 def updateInfoSearch(ships):
     llen = len(ships['infoSearch'])
     newInfo = []
-    st = "INSERT INTO ship_info(mmsi,reported_time,last_grab_time,lat,lon,speed,course) VALUES "
-    if(llen > 5):
-        llen = 5
+    if(llen > MAX_NR_SHIPS_INFO_GRAB):
+        llen = MAX_NR_SHIPS_INFO_GRAB
     infoToSearch = list(ships['infoSearch'])[:llen]
     for mmsi in infoToSearch:
-        grab_data_for_specific_ship(ships,mmsi)
-        ships['infoSearch'].remove(mmsi)
-        ships['infoModified'].add(mmsi)
-        time.sleep(0.5)
+        grab_data_for_specific_ship(ships, mmsi)
+        time.sleep(0.2)
     return newInfo, llen
 
 
@@ -101,9 +99,17 @@ def grab_data_for_specific_ship(ships, mmsi):
     NAME = 0
     DESTINATION = 3
     NAV_STATUS = 4
+    INFO_FOUNT = 5
 
     url = "http://www.myshiptracking.com/requests/vesseldetails.php?type=json&mmsi="+str(mmsi)
     # print(url)
+
+    ships['infoSearch'].remove(mmsi)
+    ships['infoModified'].add(mmsi)
+    results = [""] * 6
+    results[INFO_FOUNT] = 0
+    ships['information'][mmsi] = results
+
     response = httpPool.request('GET', url)
     if response.status is not 200:
         return None
@@ -113,17 +119,16 @@ def grab_data_for_specific_ship(ships, mmsi):
     except Exception:
         return None
 
+    if "V" not in j:
+        return None
+
     j = j["V"]
-    results = [""]*5
     results[TYPE] = safe_cast(j["VESSEL_TYPE"], str)
     results[FLAG] = safe_cast(j["FLAG"], str)
     results[NAME] = safe_cast(j["NAME"], str)
     results[DESTINATION] = safe_cast(j["DESTINATION"], str)
     results[NAV_STATUS] = safe_cast(j["NAV_STATUS"], str)
-    ships['information'][mmsi] = results
-    return tuple(results)
-
-
+    results[INFO_FOUNT] = 1
 
 
 def db_connect():
