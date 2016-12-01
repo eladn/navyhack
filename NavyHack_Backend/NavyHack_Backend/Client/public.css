@@ -38,6 +38,14 @@ footer {
     height: 960px;
 }
 
-.info-table td {
-    padding: 5px;
+table td {
+    padding: 2px;
+}
+
+#ship-count {
+    padding: 15px;
+}
+
+#runAlgo {
+    margin-right: 10px;
 }

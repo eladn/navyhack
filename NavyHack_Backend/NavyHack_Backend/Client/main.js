@@ -242,6 +242,8 @@ function writeSingleShip(ship) {
     });
 
     marker.setMap(map);
+
+    $("#ship-count > span").text(parseInt($("#ship-count > span").text())+1);
 }
 
 function paintAllShips() {
