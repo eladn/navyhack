@@ -39,7 +39,7 @@ router.post('/last', function (req, res) {
 });
 
 router.get('/:mmsi', function (req, res) {
-    console.log('GET points by mmsi', req.params.mmsi);
+    console.log(`GET points by mmsi=${req.params.mmsi}`);
     DB.pointsByMMSI(req.params.mmsi, onDBSuccess(res));
 });
 

@@ -5,8 +5,8 @@ const app = express();
 // parse application/json
 app.use(bodyParser.json());
 
-const points = require('./points');
-const entityData = require('./entityData');
+const points = require('./API/points');
+const entityData = require('./API/entityData');
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
