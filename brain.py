@@ -4,10 +4,16 @@ Created on Thu Dec 01 09:34:23 2016
 
 @author: Gal
 """
-from parsers import createUnlabledVectors, collectFiles
+from parsers import createVectors, collectFiles
 import numpy as np
 from sklearn.cluster import KMeans
+from sklearn import svm
+from sklearn.metrics import confusion_matrix
 from matplotlib import pylab as plt
+import statistics
+from dist2coast import *
+from sklearn.model_selection import cross_val_score
+
 
 '''
 points:
@@ -20,6 +26,7 @@ points[0][4] - course list
 points[0][5] - avrage course
 points[0][6] - mmsi
 points[0][7] - label
+points[0][8] - status
 '''
 
 def simplePlot(points):
@@ -62,14 +69,34 @@ def speedAndCourse(points,
     speeds = []
     for i in range(len(points)):
         for j in range(len(points[i])):
+
             if (len(points[i][j][4]) >= 10 and len(points[i][j][2]) >= 10):
                 speeds.append(np.diff(points[i][j][4][:5]) + np.diff(points[i][j][2][:5]))
     X = np.array(speeds)
     kmeans = KMeans(n_clusters=clusters, random_state=0).fit(X)
     return [kmeans, X, clusters]
 
+def createAlgoVector(points):
+    # d = get_dist2coast_dict()
+    x = lambda y:True if y[7] is not "" and len(y[4])>9 and len(y[2])>9 else False
+    deriv = lambda l:[l[i] - l[i+1] for i in range(len(l)-1)]
+    r = lambda vector:vector[4][:9]+vector[2][:9]+[statistics.variance(vector[4])]+[statistics.variance(vector[2])]\
+                +vector[0][:9]+vector[1][:9]
+    # +[dist2coast(d,vector[0][0],vector[1][0])]
+    speeds = []
+    labels = []
+    for vector in points:
+        if(x(vector)):
+            speeds.append(r(vector))
+            labels.append(vector[7])
+    return speeds, labels
 
-# def locationVector(points = collectFiles("bestPickleEver.txt"),
+def runAlgo(vec,label):
+    clf = svm.LinearSVC()
+    scores = cross_val_score(clf, vec, label, cv=4)
+    print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+
 def locationVector(points,
                     clusters = 5 ):
     speeds = []
@@ -80,16 +107,18 @@ def locationVector(points,
     X = np.array(speeds)
     kmeans = KMeans(n_clusters=clusters, random_state=0).fit(X)
     return [kmeans, X, clusters]
-    
 
-def makeSupervisedData(points):
-    pass
-    
-    
-    
+def makeLabeledDataChange(points):
+       speeds = []
+       for row in points:
+           for shipVector in row:
+               if(shipVector[7] is ""):
+                   continue
+               speeds.append(shipVector)
+       return getSC(speeds)
 
-    
 
-# points = collectFiles("a")
+
+       # points = collectFiles("a")
 # speedClustering(points)
 # simplePlot(points)
