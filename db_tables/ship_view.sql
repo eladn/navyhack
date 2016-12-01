@@ -1,0 +1,9 @@
+CREATE TABLE `navyhack`.`ships_view` (
+  `mmsi` INT NOT NULL,
+  `reported_time` DATETIME NOT NULL,
+  `lat` FLOAT NOT NULL,
+  `lon` FLOAT NOT NULL,
+  `class` INT NOT NULL,
+  `course` FLOAT NOT NULL,
+  `speed` FLOAT NOT NULL,
+  PRIMARY KEY (`mmsi`, `reported_time`));
