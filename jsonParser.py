@@ -208,9 +208,10 @@ def iterative_interrupted_data_grabber(ships, db, sleep_time=5):
 
         stats = grab_data_from_shipfinder(ships)
         infoStats = updateInfoSearch(ships)
-        if stats is not None or infoStats[1] is not 0:
-            print("Running loop number {}  [ shipfinder: tot:{} updated:{} new:{} infoFind{} ]".format(
-                iteration, stats['nr_items'], stats['nr_updated_items'], stats['nr_new_items'], infoStats[1]), end="\r")
+        if stats is not None:
+            print("Running loop number {}  [ shipfinder: tot:{} updated:{} new:{} {} ]".format(
+                iteration, stats['nr_items'], stats['nr_updated_items'], stats['nr_new_items'],
+                ('infoState:{}'.format(infoStats[1]) if infoStats[1] is not 0 else '')), end="\r")
 
         if db is not None:
             affected_rows = update_db(ships, db)
