@@ -3,7 +3,6 @@ import MySQLdb
 import json
 from urllib3 import PoolManager
 import time
-#from collections import namedtuple
 from datetime import datetime
 from pytz import timezone
 from utils import db_connect

@@ -29,7 +29,7 @@ def create_ships_ds():
 def makeItWorks(db, ships):
     f = open("parser.txt","wb")
     cursor = db.cursor()
-    st = "SELECT DISTINCT mmsi from ship_tracks limit 100;"
+    st = "SELECT DISTINCT mmsi from ship_tracks;"
     cursor.execute(st)
     d = {}
     shipList = []
@@ -57,7 +57,6 @@ def makeItWorks(db, ships):
     j = iter(d.items())
     for i in range(10):
         with open("bestPickleEver%s.txt"%i,"wb") as f:
-            print(dict(itertools.islice(j,int(((i)/10)*lengthOfList),int(((i+1)/10)*lengthOfList))))
             pickle.dump(dict(itertools.islice(j,int(((i)/10)*len(d)),int(((i+1)/10)*len(d)))),f,2)
 
 
