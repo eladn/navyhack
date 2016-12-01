@@ -10,7 +10,7 @@ from utils import safe_cast
 from math import ceil, floor
 
 MAX_NR_ROWS_PER_UPDATE = 10000
-MAX_NR_SHIPS_INFO_GRAB = 30
+MAX_NR_SHIPS_INFO_GRAB = 60
 NR_SUCCEED_REQUEST_TO_INC_ZOOM = 5
 
 MMSI = 0
@@ -434,7 +434,8 @@ def iterative_interrupted_data_grabber(ships, db, sleep_time=5, noinfo=False, no
         if not noinfo:
             infoStats = updateInfoSearch(ships)
         if infoStats is not None:
-            print('Running loop number {}  [ myshiptracking ship info grabbed: {} ]               '.format(iteration, infoStats[1]))
+            print('Running loop number {}  [ myshiptracking ship info grabbed: {} ]              '.format(
+                iteration, infoStats[1]), end="\r")
         #('infoState:{}'.format(infoStats[1]) if infoStats[1] is not 0 else '')
 
         if db is not None:
@@ -444,7 +445,7 @@ def iterative_interrupted_data_grabber(ships, db, sleep_time=5, noinfo=False, no
                     iteration, affected_rows), end="\r")
             if not noinfo:
                 affected_rows = update_info_to_db(ships, db)
-                print("Running loop number {}  [ db info affected rows: {} ]                             ".format(
+                print("Running loop number {}  [ db info affected rows: {} ]                           ".format(
                     iteration, affected_rows), end="\r")
 
         time.sleep(sleep_time)
