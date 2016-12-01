@@ -184,18 +184,23 @@ function writeSingleShip(ship) {
 
             $.getJSON('/api/entity/' + ship.mmsi, function (info) {
 
-                var content = "<div style='color:black;'><table>";
+                var content = "<div style='color:black;'><table class='into-table'>";
 
                 content += "<tr><td colspan='2'>"+
                 			"<img src='http://www.myshiptracking.com/requests/getpic.php?mmsi="+ship.mmsi+"'>"
                 		"</td></tr>";
 
                 var keys = Object.keys(info);
-
+                
                 keys.forEach(function (key) {
                     content += "<tr>";
-                    content += "<td><strong>" + key + ":&nbsp;&nbsp;</strong></td>"
-                    content += "<td>" + info[key] + "</td>"
+                    content += "<td><strong>" + key + ":&nbsp;&nbsp;</strong></td>";
+                    content += "<td>" + info[key];
+                    if (key == 'flag') {
+                        var cc = /\[(\w{2})\]/.exec(info[key])[1] || '';
+                        content += "<img src='/client/res/flags/" + cc + ".png' width='18' height='12'>"
+                    }
+                    content += "</td>";
                     content += "</tr>";
                 });
 
