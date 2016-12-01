@@ -7,6 +7,7 @@ app.use(bodyParser.json());
 
 const points = require('./API/points');
 const entityData = require('./API/entityData');
+const client = require('./client');
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
@@ -20,3 +21,4 @@ app.listen(3000, function () {
 
 app.use('/api/points', points);
 app.use('/api/entity', entityData);
+app.use('/', client);

@@ -1,0 +1,2 @@
+C:\Users\dd-y\Documents\GitHub\navyhack\NavyHack_Backend\NavyHack_Backend\obj\Debug\NavyHack_Backend.njsprojResolveAssemblyReference.cache
+C:\Users\dd-y\Documents\GitHub\navyhack\NavyHack_Backend\NavyHack_Backend\bin\Microsoft.NodejsTools.WebRole.dll
