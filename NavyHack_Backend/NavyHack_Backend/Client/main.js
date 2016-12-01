@@ -9,7 +9,7 @@ function initMap() {
     // Create a map object, and include the MapTypeId to add
     // to the map type control.
     map = new google.maps.Map(document.getElementById('map'), {
-        center: { lat: 33, lng: 34 },
+        center: { lat: 32.7940, lng: 34.9896 },
         zoom: 9,
         mapTypeControlOptions: {
             mapTypeIds: ['styled_map']
