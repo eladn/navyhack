@@ -186,6 +186,11 @@ function writeSingleShip(ship) {
             $.getJSON('/api/entity/' + ship.mmsi, function (info) {
 
                 var content = "<div style='color:black;'><table>";
+
+                content += "<tr><td colspan='2'>"+
+                			"<img src='http://www.myshiptracking.com/requests/getpic.php?mmsi="+ship.mmsi+"'>"
+                		"</td></tr>";
+
                 var keys = Object.keys(info);
 
                 keys.forEach(function (key) {
