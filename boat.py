@@ -41,7 +41,7 @@ def makeItWorks(db, ships):
     print('nr of vessel_types: %s' % len(vessel_type_to_ship_type))
     with open("vessel_type_to_ship_type.pkl","wb") as pf:
         pickle.dump(vessel_type_to_ship_type, pf)
-
+    exit()
     cursor = db.cursor()
     st = "SELECT DISTINCT mmsi from ship_tracks;"
     cursor.execute(st)
@@ -57,12 +57,13 @@ def makeItWorks(db, ships):
     i = 0
     for elem in cursor.fetchall():
         infos[elem[0]] = list(elem)
+    print('nr of rec from ship_info: %s' % len(infos))
     for mmsi in shipList:
         if(i % 3000 is 0):
             print("we are in entity number %s" %i)
         i+=1
         d[mmsi] = [[],[],[]]
-        tempquery = "SELECT mmsi, lat, lon, course, speed, reported_time from ship_tracks where mmsi = %s;" %mmsi
+        tempquery = "SELECT mmsi, lat, lon, course, speed, reported_time from ship_tracks where mmsi = %s order by reported_time desc;" %mmsi
         cursor.execute(tempquery)
         for row in cursor.fetchall():
             d[mmsi][0].append(row)
@@ -72,7 +73,7 @@ def makeItWorks(db, ships):
     cursor.close()
     j = list(d.items())
     lower = 0
-    print(len(j))
+    print('nr of mmsi in dict (after deleting rows which are not in info): %s' % len(j))
     partial = int((1/6) * len(j))
     with open("bestPickleEver1.txt","wb") as f:
         pickle.dump(j[0:5000],f)

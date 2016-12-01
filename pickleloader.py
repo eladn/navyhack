@@ -25,9 +25,9 @@ def keyToVals(key):
 
 
 
-ships = loadFile("bestPickleEver0.txt")
-print(len(ships))
-print(ships)
+ships = loadFile("bestPickleEver1.txt")
+# print(len(ships))
+# print(ships)
 # SELECT mmsi, lat, lon, class, course, speed, rtime  FROM ships_view
 # initInsert = "INSERT INTO ships_view(mmsi, lat, lon, class, course, speed, rtime) values"
 # l = [keyToVals(key) for key in ships]

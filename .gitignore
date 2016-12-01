@@ -7,5 +7,14 @@ NavyHack_Backend/NavyHack_Backend/node_modules/**
 NavyHack_Backend\NavyHack_Backend\node_modules\**
 data/dist2coast.pkl
 data/dist2coast.txt
+<<<<<<< HEAD
+bestPickleEver1.txt
+*.pkl
+bestPickleEver9.txt
+bestPickleEver2.txt
+bestPickleEver10.txt
+best*
+=======
 bestPickleEver*.txt
 *.pkl
+>>>>>>> 3cf8b0aece8f9416fb82c94dff8c53a26fdddea8
