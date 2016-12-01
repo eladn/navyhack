@@ -1,3 +1,5 @@
 secrets.py
 .idea\*
 *.pyc
+*.xml
+*.iml
