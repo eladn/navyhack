@@ -79,10 +79,10 @@ def speedAndCourse(points,
 
 def createAlgoVector(points):
     # d = get_dist2coast_dict()
-    x = lambda y:True if y[7] is not "" and len(y[4])>9 and len(y[2])>9 else False
+    x = lambda y:True if y[7] is not "" and len(y[4])>30 and len(y[2])>30 else False
     deriv = lambda l:[l[i] - l[i+1] for i in range(len(l)-1)]
-    r = lambda vector:vector[4][:9]+vector[2][:9]+[statistics.variance(vector[4])]+[statistics.variance(vector[2])]\
-                +vector[0][:9]+vector[1][:9]
+    r = lambda vector:vector[4][:30]+vector[2][:30]+[statistics.variance(vector[4])]+[statistics.variance(vector[2])]\
+                +vector[0][:30]+vector[1][:30]
     # +[dist2coast(d,vector[0][0],vector[1][0])]
     speeds = []
     labels = []

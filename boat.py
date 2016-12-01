@@ -41,7 +41,7 @@ def makeItWorks(db, ships):
     print('nr of vessel_types: %s' % len(vessel_type_to_ship_type))
     with open("vessel_type_to_ship_type.pkl","wb") as pf:
         pickle.dump(vessel_type_to_ship_type, pf)
-
+    exit()
     cursor = db.cursor()
     st = "SELECT DISTINCT mmsi from ship_tracks;"
     cursor.execute(st)
