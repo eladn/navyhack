@@ -32,6 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="DB.js" />
+    <Compile Include="entityData.js" />
     <Compile Include="points.js" />
     <Compile Include="server.js" />
     <Content Include="package.json" />
