@@ -187,8 +187,8 @@ def update_db(ships, db):
     cursor = db.cursor()
     # print(infoList)
     try:
-        cursor.executemany("INSERT INTO ship_info(mmsi, shipname, flag, vessel_type, destination, nav_status) "
-                           "VALUES (%s,%s,%s,%s,%s,%s)",infoList)
+        cursor.executemany("INSERT INTO ship_info(mmsi, shipname, flag, vessel_type, destination, nav_status, info_found) "
+                           "VALUES (%s,%s,%s,%s,%s,%s,%s)",infoList)
         db.commit()
     except Exception as e:
         print(e, file=sys.stderr)
