@@ -10,14 +10,7 @@ import pickle
 import os
 from os.path import isfile, join
 
-'''
-with open ("parser2.txt",'rb') as f:
-    b = pickle.load(f)
-    for row in b:
-        for i in range(len(b[row])):
-            print b[row][i]
-        break
-'''
+
 '''
 HEADER:
  0 - mmsi
@@ -73,7 +66,6 @@ def createUnlabledVectors(fileName):
                 tmp.append("0")
             else:
                 tmp.append(b[row][1][2])
-                print("test")
             vectors.append(tmp)
             
    return vectors
@@ -85,6 +77,5 @@ def collectFiles(folder):
     
     for f in onlyfiles:
         if (str(f)[:4] == "best"):
-            print str(f)
             manyVectors.append(createUnlabledVectors(str(f)))
     return manyVectors
