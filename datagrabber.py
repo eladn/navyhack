@@ -107,7 +107,8 @@ myshiptracking_data = {
             'last_zoom_per_cell': {}
         }
     ],
-    'max_tot_nr_requests_per_cycle': 50
+    'max_tot_nr_requests_per_cycle': 50,
+    'min_zoom': 5
 }
 
 
@@ -160,7 +161,7 @@ def grab_data_from_myshiptracking(ships):
 
                 # we'll try next time with a lower zoom
                 if stat is None:
-                    area['last_zoom_per_cell'][(row, col)] = (max(1, custom_zoom-1), 0)
+                    area['last_zoom_per_cell'][(row, col)] = (max(myshiptracking_data['min_zoom'], custom_zoom-1), 0)
                 elif (row, col) in area['last_zoom_per_cell']:
                     times_succeeded_with_this_zoom = area['last_zoom_per_cell'][(row, col)][1]
                     area['last_zoom_per_cell'][(row, col)] = (custom_zoom, times_succeeded_with_this_zoom+1)
