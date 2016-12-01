@@ -123,12 +123,15 @@ def grab_data_for_specific_ship(ships, mmsi):
         return None
 
     j = j["V"]
-    results[TYPE] = safe_cast(j["VESSEL_TYPE"], str)
-    results[FLAG] = safe_cast(j["FLAG"], str)
-    results[NAME] = safe_cast(j["NAME"], str)
-    results[DESTINATION] = safe_cast(j["DESTINATION"], str)
-    results[NAV_STATUS] = safe_cast(j["NAV_STATUS"], str)
-    results[INFO_FOUNT] = 1
+    try:
+        results[TYPE] = safe_cast(j["VESSEL_TYPE"], str)
+        results[FLAG] = safe_cast(j["FLAG"], str)
+        results[NAME] = safe_cast(j["NAME"], str)
+        results[DESTINATION] = safe_cast(j["DESTINATION"], str)
+        results[NAV_STATUS] = safe_cast(j["NAV_STATUS"], str)
+        results[INFO_FOUNT] = 1
+    except Exception:
+        return None
 
 
 def db_connect():
