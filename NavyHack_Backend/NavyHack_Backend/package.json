@@ -1,0 +1,15 @@
+{
+  "name": "navy-hack_backend",
+  "version": "0.0.0",
+  "description": "NavyHack_Backend",
+  "main": "server.js",
+  "author": {
+    "name": "Daniel hauser"
+  },
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0",
+    "moment": "^2.17.0",
+    "mysql": "^2.12.0"
+  }
+}

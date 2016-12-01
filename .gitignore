@@ -3,3 +3,5 @@ secrets.py
 *.pyc
 *.xml
 *.iml
+NavyHack_Backend/NavyHack_Backend/node_modules/**
+NavyHack_Backend\NavyHack_Backend\node_modules\**
