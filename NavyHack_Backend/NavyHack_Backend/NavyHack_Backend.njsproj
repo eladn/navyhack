@@ -31,24 +31,42 @@
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="DB.js" />
-    <Compile Include="points.js" />
+    <Compile Include="API\DB.js" />
+    <Compile Include="API\entityData.js" />
+    <Compile Include="API\points.js" />
+    <Compile Include="client.js" />
+    <Compile Include="Client\js\bootstrap.min.js" />
+    <Compile Include="Client\js\jquery.js" />
+    <Compile Include="Client\main.js" />
     <Compile Include="server.js" />
+    <Content Include="Client\css\bootstrap.min.css" />
+    <Content Include="Client\public.css" />
+    <Content Include="Client\fonts\glyphicons-halflings-regular.svg" />
+    <Content Include="Client\fonts\glyphicons-halflings-regular.ttf" />
+    <Content Include="Client\fonts\glyphicons-halflings-regular.woff" />
+    <Content Include="Client\fonts\glyphicons-halflings-regular.woff2" />
+    <Content Include="Client\index.html" />
     <Content Include="package.json" />
     <Content Include="README.md" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="API\" />
+    <Folder Include="Client\" />
     <Folder Include="typings\" />
     <Folder Include="typings\globals\" />
     <Folder Include="typings\globals\body-parser\" />
+    <Folder Include="typings\globals\bootstrap\" />
     <Folder Include="typings\globals\express\" />
+    <Folder Include="typings\globals\jquery\" />
     <Folder Include="typings\globals\moment\" />
     <Folder Include="typings\globals\mysql\" />
     <Folder Include="typings\globals\node\" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="typings\globals\body-parser\index.d.ts" />
+    <TypeScriptCompile Include="typings\globals\bootstrap\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\express\index.d.ts" />
+    <TypeScriptCompile Include="typings\globals\jquery\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\moment\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\mysql\index.d.ts" />
     <TypeScriptCompile Include="typings\globals\node\index.d.ts" />
