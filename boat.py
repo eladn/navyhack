@@ -26,8 +26,22 @@ def create_ships_ds():
     return {
 
     }
+
+
 def makeItWorks(db, ships):
     # f = open("parser.txt","wb")
+    cursor = db.cursor()
+    st = "SELECT vessel_type, ship_type FROM vessel_type_to_ship_type;"
+    cursor.execute(st)
+    vessel_type_to_ship_type = {}
+    for row in cursor.fetchall():
+        assert len(row) >= 2
+        vessel_type_to_ship_type[row[0]] = row[1]
+    cursor.close()
+    print('nr of vessel_types: %s' % len(vessel_type_to_ship_type))
+    with open("vessel_type_to_ship_type.pkl","wb") as pf:
+        pickle.dump(vessel_type_to_ship_type, pf)
+
     cursor = db.cursor()
     st = "SELECT DISTINCT mmsi from ship_tracks;"
     cursor.execute(st)
@@ -35,7 +49,8 @@ def makeItWorks(db, ships):
     shipList = []
     for row in cursor.fetchall():
         shipList.append(row[0])
-    lengthOfList = len(shipList)
+
+    print('nr of distinct mmsi from ship_tracks: %s' % len(shipList))
     infos = {}
     tempquery = "SELECT mmsi, shipname, flag, vessel_type, destination, nav_status, info_found from ship_info;"
     cursor.execute(tempquery)

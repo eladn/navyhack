@@ -9,6 +9,7 @@ import numpy as np
 from sklearn.cluster import KMeans
 from sklearn import svm
 from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import train_test_split
 from matplotlib import pylab as plt
 import statistics
 from dist2coast import *
@@ -93,8 +94,11 @@ def createAlgoVector(points):
 
 def runAlgo(vec,label):
     clf = svm.LinearSVC()
-    scores = cross_val_score(clf, vec, label, cv=4)
-    print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+    x1,x2,y1,y2 = train_test_split(vec, label, test_size=0.4, random_state=0)
+    clf.fit(x1,y1)
+    print(clf.score(x2,y2))
+    # scores = cross_val_score(clf, vec, label, cv=3)
+    # print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
 
 def locationVector(points,
