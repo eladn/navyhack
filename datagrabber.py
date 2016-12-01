@@ -11,7 +11,7 @@ from utils import safe_cast
 from math import ceil, floor
 
 MAX_NR_ROWS_PER_UPDATE = 10000
-MAX_NR_SHIPS_INFO_GRAB = 20
+MAX_NR_SHIPS_INFO_GRAB = 30
 NR_SUCCEED_REQUEST_TO_INC_ZOOM = 5
 
 MMSI = 0
@@ -41,7 +41,7 @@ def grab_data_from_shipfinder(ships):
     url = "http://shipfinder.co/endpoints/shipDeltaUpdate.php"
     response = httpPool.request('GET', url)
     if response.status is not 200:
-        print('shipfinder grab status no 200 err', file=sys.stderr)
+        print('shipfinder grab status no 200 err. url: %s'%url, file=sys.stderr)
         return None
 
     try:
@@ -50,7 +50,7 @@ def grab_data_from_shipfinder(ships):
         j = json.loads(str)
         # TODO: maybe try to change the sleep time here
     except Exception:
-        print('shipfinder grab json parse err', file=sys.stderr)
+        print('shipfinder grab json parse err. url: %s'%url, file=sys.stderr)
         return None
 
     ships_data = j['ships']
@@ -66,8 +66,7 @@ def grab_data_from_shipfinder(ships):
     for mmsi, vals in ships_data.items():
         mmsi = safe_cast(mmsi, int)
         if mmsi is None:
-            print('shipfinder None mmsi err', file=sys.stderr)
-            # TODO: log it somehow
+            print('shipfinder None mmsi . url: %s'%url, file=sys.stderr)
             continue
         if mmsi not in lastUpdate:
             nr_new_items += 1
@@ -195,7 +194,7 @@ def grab_data_from_myshiptracking_cell(ships, min_lat, max_lat, min_lon, max_lon
     )
     response = httpPool.request('GET', url)
     if response.status is not 200:
-        print('myshiptracking grab 200 err', file=sys.stderr)
+        print('myshiptracking grab 200 err. url: %s'%url, file=sys.stderr)
         return None
 
     try:
@@ -288,6 +287,7 @@ def updateInfoSearch(ships):
     if(llen > MAX_NR_SHIPS_INFO_GRAB):
         llen = MAX_NR_SHIPS_INFO_GRAB
     infoToSearch = list(ships['infoSearch'])[:llen]
+
     for mmsi in infoToSearch:
         grab_data_for_specific_ship(ships, mmsi)
         time.sleep(0.2)
@@ -314,14 +314,17 @@ def grab_data_for_specific_ship(ships, mmsi):
 
     response = httpPool.request('GET', url)
     if response.status is not 200:
+        print('myshiptracking ship_info: status is not 200. url: %s' % url, file=sys.stderr)
         return None
     try:
         j = json.loads(response.data.decode('utf-8'))
         # TODO: maybe try to change the sleep time here
     except Exception:
+        print('myshiptracking ship_info: json parse error. url: %s' % url, file=sys.stderr)
         return None
 
     if "V" not in j:
+        print('myshiptracking ship_info: json parse error. no `V`. url: %s' % url, file=sys.stderr)
         return None
 
     j = j["V"]
@@ -379,14 +382,26 @@ def update_db(ships, db):
             print("failed to insert values.", file=sys.stderr)
         finally:
             cursor.close()
+    return tot_affected_rows
+
+
+def update_info_to_db(ships, db):
+    if db is None:
+        return 0
+
+    if len(ships['infoModified']) < 1:
+        return 0  # nothing to update
+
+    tot_affected_rows = 0
     infoList = []
     for ship_mmsi in ships['infoModified']:
         infoList.append(tuple([ship_mmsi] + ships['information'][ship_mmsi]))
     ships['infoModified'] = set()
     cursor = db.cursor()
-    # print(infoList)
+
     try:
-        cursor.executemany("INSERT INTO ship_info(mmsi, shipname, flag, vessel_type, destination, nav_status, info_found) "
+        tot_affected_rows = cursor.executemany(
+            "INSERT INTO ship_info(mmsi, shipname, flag, vessel_type, destination, nav_status, info_found) "
                            "VALUES (%s,%s,%s,%s,%s,%s,%s)",infoList)
         db.commit()
     except Exception as e:
@@ -396,29 +411,42 @@ def update_db(ships, db):
     return tot_affected_rows
 
 
-def iterative_interrupted_data_grabber(ships, db, sleep_time=5):
+def iterative_interrupted_data_grabber(ships, db, sleep_time=5, noinfo=False, noloc=False):
     iteration = 0
     while True:
         iteration += 1
         print("Running loop number %s                                                       " % iteration, end="\r")
 
-        stats = grab_data_from_shipfinder(ships)
+        stats = None
+        if not noloc:
+            stats = grab_data_from_shipfinder(ships)
         if stats is not None:
-            print("Running loop number {}  [ shipfinder: tot:{} updated:{} new:{} ]".format(
+            print("Running loop number {}  [ shipfinder: tot:{} updated:{} new:{} ]              ".format(
                 iteration, stats['nr_items'], stats['nr_updated_items'], stats['nr_new_items']), end="\r")
 
-        stats = grab_data_from_myshiptracking(ships)
+        stats = None
+        if not noloc:
+            stats = grab_data_from_myshiptracking(ships)
         if stats is not None:
-            print("Running loop number {}  [ myshiptracking: tot:{} updated:{} new:{} ]".format(
+            print("Running loop number {}  [ myshiptracking: tot:{} updated:{} new:{} ]            ".format(
                 iteration, stats['nr_items'], stats['nr_updated_items'], stats['nr_new_items']), end="\r")
 
-        infoStats = updateInfoSearch(ships)
-        ## ('infoState:{}'.format(infoStats[1]) if infoStats[1] is not 0 else '')
+        infoStats = None
+        if not noinfo:
+            infoStats = updateInfoSearch(ships)
+        if infoStats is not None:
+            print('Running loop number {}  [ myshiptracking ship info grabbed: {} ]               '.format(iteration, infoStats[1]))
+        #('infoState:{}'.format(infoStats[1]) if infoStats[1] is not 0 else '')
 
         if db is not None:
-            affected_rows = update_db(ships, db)
-            print("Running loop number {}  [ db affected rows: {} ]                             ".format(
-                iteration, affected_rows), end="\r")
+            if not noloc:
+                affected_rows = update_db(ships, db)
+                print("Running loop number {}  [ db affected rows: {} ]                             ".format(
+                    iteration, affected_rows), end="\r")
+            if not noinfo:
+                affected_rows = update_info_to_db(ships, db)
+                print("Running loop number {}  [ db info affected rows: {} ]                             ".format(
+                    iteration, affected_rows), end="\r")
 
         time.sleep(sleep_time)
 
@@ -454,6 +482,8 @@ def args_parser():
     import argparse
     parser = argparse.ArgumentParser(description='Grabber for naval data.')
     parser.add_argument('--nodb', help='do not update db.', action="store_true")
+    parser.add_argument('--noinfo', help='do not grab ships info.', action="store_true")
+    parser.add_argument('--noloc', help='do not grab ships new reported locations.', action="store_true")
     parser.add_argument('--sleep', default=DEFAULT_SLEEP_SEC, type=int, choices=range(5, 60*20),
                         metavar="[{}-{}]".format(5, 60*20), help='sleep time between requests.')
     return parser
@@ -478,7 +508,7 @@ if __name__ == "__main__":
 
     init()
     ships = create_ships_ds(db)
-    iterative_interrupted_data_grabber(ships, db, args.sleep)
+    iterative_interrupted_data_grabber(ships, db, args.sleep, args.noinfo, args.noloc)
 
 
 
