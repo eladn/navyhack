@@ -3,7 +3,7 @@ const express = require('express');
 const router = express.Router();
 
 router.use('/scripts', express.static(path.join(__dirname,'node_modules')));
-router.use('/client/res', express.static(path.join(__dirname,'client')));
+router.use('/client/res', express.static(path.join(__dirname,'Client')));
 
 router.get('/', function (req, res) {
     console.log(`GET index.html`);
