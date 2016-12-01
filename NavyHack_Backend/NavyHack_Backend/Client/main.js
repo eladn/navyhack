@@ -250,6 +250,7 @@ function writeSingleShip(ship) {
     });
 
     addToMap(marker);
+    $("#ship-count > span").text(parseInt($("#ship-count > span").text()) + 1);
 }
 
 var featuresInMap = [];
