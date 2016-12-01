@@ -7,7 +7,7 @@ import time
 #from collections import namedtuple
 from datetime import datetime
 from pytz import timezone
-
+from utils import db_connect
 from utils import safe_cast
 
 MAX_NR_ROWS_PER_UPDATE = 10000
@@ -133,12 +133,6 @@ def grab_data_for_specific_ship(ships, mmsi):
     except Exception:
         return None
 
-
-def db_connect():
-    try:
-        return MySQLdb.connect(cnx['HOST'], cnx['USER'], cnx['PASSWORD'], cnx['db'], charset='utf8', use_unicode=True)
-    except Exception:
-        return None
 
 
 def convert_ship_data_to_sql_insert_values(mmsi, ship_data):
