@@ -1,4 +1,5 @@
-var map;
+var map,
+    shuldPaintAllInSameColor = true;
 
 function initMap() {
 
@@ -22,12 +23,12 @@ function initMap() {
     map.setMapTypeId('styled_map');
 
     // Fetch all ships
-    fetchData(JSON.stringify(map.getBounds()));
+    fetchData(map.getBounds());
 
 
     google.maps.event.addListener(map, 'bounds_changed', function () {
-
-        fetchData(JSON.stringify(map.getBounds()));
+ 
+        fetchData(map.getBounds());
     });
 }
 
@@ -42,8 +43,6 @@ function fetchPointsOfShip(mmsi) {
         drawShipHistory(response, mmsi);
     });
 }
-
-
 
 function drawShipHistory(points, mmsi) {
     points.sort(function (a, b) {
@@ -105,7 +104,7 @@ function fetchData(bounds) {
         type: 'POST',
         dataType: "json",
         contentType: "application/json; charset=utf-8",
-        data: bounds,
+        data: JSON.stringify(bounds),
         success: function (response) {
 
             // Draw the current ships
@@ -240,9 +239,15 @@ function writeSingleShip(ship) {
     marker.setMap(map);
 }
 
+function paintAllShips() {
+    shuldPaintAllInSameColor = false;
+
+}
 
 function shipTypeToColor(type) {
-    if (type == "Tanker")
+    if (shuldPaintAllInSameColor) {
+        return '#9D00FF';
+    } else if (type == "Tanker")
         return "#f4f142";
     else if (type == "Cargo")
         return "#686726";
