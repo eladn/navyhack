@@ -35,10 +35,10 @@ vectors[0][6] - mmsi
 '''
 
 
-def createUnlabledVectors(fileName):
+def createVectors(fileName):
    vectors = []
    with open (fileName,'rb') as f:
-        b = pickle.load(f)
+        b = dict(pickle.load(f))
         for row in b:
             tmp = []
             lat = []
@@ -63,19 +63,24 @@ def createUnlabledVectors(fileName):
             tmp.append(sum(course)/len(course))
             tmp.append(row)
             if (len(b[row][1]) == 0):
-                tmp.append("0")
+                tmp.append("")
+                tmp.append("")
             else:
-                tmp.append(b[row][1][2])
+                if(b[row][1][3] in["Not Available","Not available"]):
+                    tmp.append("")
+                else:
+                    tmp.append(b[row][1][3])
+                tmp.append(b[row][1][-2])
             vectors.append(tmp)
-            
    return vectors
 
 
-def collectFiles(folder):
-    manyVectors = []
+def collectFiles(folder=""):
+    vectors = []
     onlyfiles  = [f for f in os.listdir('.') if os.path.isfile(f)]
-    
     for f in onlyfiles:
         if (str(f)[:4] == "best"):
-            manyVectors.append(createUnlabledVectors(str(f)))
-    return manyVectors
+            vectors +=createVectors(str(f))
+    return vectors
+
+print(len(collectFiles()))

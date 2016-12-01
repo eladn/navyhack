@@ -25,6 +25,7 @@ def pos_to_04_res(lat, lon):
 def dist2coast(dist2coast_dict, lat, lon):
 	return dist2coast_dict(pos_to_04_res(lat, lon))
 
+
 if __name__ == '__main__':
 	with open('data/dist2coast.pkl', 'wb') as pf:
 		dist2coast_dict = get_dist2coast_dict()

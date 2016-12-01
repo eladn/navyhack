@@ -27,7 +27,7 @@ def create_ships_ds():
 
     }
 def makeItWorks(db, ships):
-    f = open("parser.txt","wb")
+    # f = open("parser.txt","wb")
     cursor = db.cursor()
     st = "SELECT DISTINCT mmsi from ship_tracks;"
     cursor.execute(st)
@@ -54,10 +54,33 @@ def makeItWorks(db, ships):
         if(mmsi not in infos):
             continue
         d[mmsi][1] = infos[mmsi]
-    j = iter(d.items())
-    for i in range(10):
-        with open("bestPickleEver%s.txt"%i,"wb") as f:
-            pickle.dump(dict(itertools.islice(j,int(((i)/10)*len(d)),int(((i+1)/10)*len(d)))),f,2)
+    cursor.close()
+    j = list(d.items())
+    lower = 0
+    print(len(j))
+    partial = int((1/6) * len(j))
+    with open("bestPickleEver1.txt","wb") as f:
+        pickle.dump(j[0:5000],f)
+    with open("bestPickleEver%s.txt" % 2, "wb") as f:
+        pickle.dump(j[5000:10000], f)
+    with open("bestPickleEver%s.txt" % 3, "wb") as f:
+        pickle.dump(j[10000:15000], f)
+    with open("bestPickleEver%s.txt"%4,"wb") as f:
+        pickle.dump(j[15000:20000],f)
+    with open("bestPickleEver%s.txt"%5,"wb") as f:
+        pickle.dump(j[20000:25000],f)
+    with open("bestPickleEver%s.txt"%6,"wb") as f:
+        pickle.dump(j[25000:30000],f)
+    with open("bestPickleEver%s.txt" % 7, "wb") as f:
+        pickle.dump(j[30000:35000], f)
+    with open("bestPickleEver%s.txt" % 8, "wb") as f:
+        pickle.dump(j[35000:40000], f)
+    with open("bestPickleEver%s.txt" % 9, "wb") as f:
+        pickle.dump(j[40000:45000], f)
+    with open("bestPickleEver%s.txt" % 10, "wb") as f:
+        pickle.dump(j[45000:50000], f)
+    with open("bestPickleEver%s.txt" % 11, "wb") as f:
+        pickle.dump(j[50000:-1], f)
 
 
 
