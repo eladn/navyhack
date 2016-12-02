@@ -284,8 +284,9 @@ function paintAllShips() {
 
     $('#runAlgo').addClass('btn-success');
     $('#runAlgo').removeClass('btn-primary');
-    $('#runAlgo > span').addClass('glyphicon-ok');
-    $('#runAlgo > span').removeClass('glyphicon-globe');
+    $('#runAlgoIcon').addClass('glyphicon-ok');
+    $('#runAlgoIcon').removeClass('glyphicon-globe');
+    $('#runAlgoText').text('#navyhackathon');
 
     featuresInMap.forEach(function (f) {
         var icon = f.icon;
@@ -295,9 +296,9 @@ function paintAllShips() {
 }
 
 function shipTypeToColor(type, algoClass) {
-    var shipClass = algoClass || type;
+    var shipClass = /*algoClass ||*/ type;
 
-    if (shuldPaintAllInSameColor && algoClass) {
+    if (shuldPaintAllInSameColor /*&& algoClass*/) {
         return '#9D00FF';
     } else {
         switch (shipClass) {
