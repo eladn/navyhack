@@ -4,6 +4,9 @@ from secrets import *
 import argparse
 import json
 import itertools
+from dist2coast import dist2coast
+
+
 def db_connect():
     try:
         return MySQLdb.connect(cnx['HOST'], cnx['USER'], cnx['PASSWORD'], cnx['db'], charset='utf8', use_unicode=True)
@@ -29,7 +32,11 @@ def create_ships_ds():
 
 
 def makeItWorks(db, ships):
-    # f = open("parser.txt","wb")
+    print('start load dist2coast')
+    with open('data/dist2coast.pkl', 'rb') as f:
+        dist2coast_lst = pickle.load(f)
+    print('end load dist2coast')
+
     cursor = db.cursor()
     st = "SELECT vessel_type, ship_type FROM vessel_type_to_ship_type;"
     cursor.execute(st)
@@ -41,7 +48,7 @@ def makeItWorks(db, ships):
     print('nr of vessel_types: %s' % len(vessel_type_to_ship_type))
     with open("vessel_type_to_ship_type.pkl","wb") as pf:
         pickle.dump(vessel_type_to_ship_type, pf)
-    exit()
+
     cursor = db.cursor()
     st = "SELECT DISTINCT mmsi from ship_tracks;"
     cursor.execute(st)
@@ -66,7 +73,7 @@ def makeItWorks(db, ships):
         tempquery = "SELECT mmsi, lat, lon, course, speed, reported_time from ship_tracks where mmsi = %s order by reported_time desc;" %mmsi
         cursor.execute(tempquery)
         for row in cursor.fetchall():
-            d[mmsi][0].append(row)
+            d[mmsi][0].append(tuple(list(row)+[dist2coast(dist2coast_lst, row[1], row[2])]))
         if(mmsi not in infos):
             continue
         d[mmsi][1] = infos[mmsi]
