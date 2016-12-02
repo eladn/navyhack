@@ -19,14 +19,14 @@ function onDBSuccess(res) {
     }
 }
 
-router.post('/inextent', function (req, res) {
-    console.log('GET points by extent');
-    DB.pointsByExtent(req.body, onDBSuccess(res));
-});
+//router.post('/inextent', function (req, res) {
+//    console.log('GET points by extent');
+//    DB.pointsByExtent(req.body, onDBSuccess(res));
+//});
 
-router.get('/inextent', function (req, res) {
-    res.status(404);
-});
+//router.get('/inextent', function (req, res) {
+//    res.status(404);
+//});
 
 router.get('/last', function (req, res) {
     console.log('GET last points');
