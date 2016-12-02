@@ -1,5 +1,6 @@
 from utils import safe_cast
 import pickle as pkl
+from numpy import around
 import sys
 
 
@@ -19,7 +20,7 @@ def get_dist2coast_dict(filename='data/dist2coast.txt'):
 
 
 def pos_to_04_res(lat, lon):
-	return round(lat*25), round(lon*25)
+	return around(lat*25), around(lon*25)
 
 
 def dist2coast(dist2coast_dict, lat, lon):

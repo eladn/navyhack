@@ -65,7 +65,7 @@ function drawShipHistory(points, mmsi) {
 
         shipPlanCoordinates.push(currentCoordinates);
 
-        historyDrawings[mmsi].push(new google.maps.Marker({
+        var marker = new google.maps.Marker({
             position: currentCoordinates,
             icon: {
                 path: google.maps.SymbolPath.CIRCLE,
@@ -74,9 +74,13 @@ function drawShipHistory(points, mmsi) {
                 strokeColor: shipTypeToColor(allShips[mmsi].class),
                 scale: 4,
             }
-        }));
+        });
 
-        historyDrawings[mmsi][historyDrawings[mmsi].length - 1].setMap(map);
+        marker.shipType = allShips[mmsi].class;
+
+        historyDrawings[mmsi].push(marker);
+
+        addToMap(marker);
     }
 
     // Add the ship's last location for line drawing
@@ -90,7 +94,9 @@ function drawShipHistory(points, mmsi) {
         zIndex: 3
     });
 
-    line.setMap(map);
+    line.shipType = allShips[mmsi].class;
+
+    addToMap(line);
    	historyDrawings[mmsi].push(line);
 }
 
@@ -178,6 +184,8 @@ function writeSingleShip(ship) {
         }
     });
 
+    marker.shipType = ship.class;
+
     marker.addListener('click', function () {
 
         if (allShips[ship.mmsi].infoView == false) {
@@ -198,7 +206,7 @@ function writeSingleShip(ship) {
                     content += "<td>" + info[key];
                     if (key == 'flag') {
                         var cc = /\[(\w{2})\]/.exec(info[key])[1] || '';
-                        content += "<img src='/client/res/flags/" + cc + ".png' width='18' height='12'>"
+                        content += "<img src='/client/res/flags/" + cc.toLowerCase() + ".png' width='18' height='12'>"
                     }
                     content += "</td>";
                     content += "</tr>";
@@ -219,7 +227,7 @@ function writeSingleShip(ship) {
                     setTimeout(function () {
                         for (var i = 0; i < historyDrawings[ship.mmsi].length; i++) {
                             var item = historyDrawings[ship.mmsi][i];
-                            item.setMap(null);
+                            removeFromMap(item);
                             historyDrawings[ship.mmsi][i] = null;
                         }
 
@@ -241,14 +249,33 @@ function writeSingleShip(ship) {
         }
     });
 
-    marker.setMap(map);
+    addToMap(marker);
+    $("#ship-count > span").text(parseInt($("#ship-count > span").text()) + 1);
+}
 
-    $("#ship-count > span").text(parseInt($("#ship-count > span").text())+1);
+var featuresInMap = [];
+
+function addToMap(f) {
+    featuresInMap.push(f);
+    f.setMap(map);
+}
+
+function removeFromMap(f) {
+    var idx = featuresInMap.indexOf(f);
+    if (idx > -1){
+        featuresInMap.splice(idx, 1);
+        f.setMap(null);
+    }
 }
 
 function paintAllShips() {
     shuldPaintAllInSameColor = false;
 
+    featuresInMap.forEach(function (f) {
+        var icon = f.icon;
+        icon.strokeColor = shipTypeToColor(f.shipType);
+        f.setIcon(icon);
+    });
 }
 
 function shipTypeToColor(type) {
