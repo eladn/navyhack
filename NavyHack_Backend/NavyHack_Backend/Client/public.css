@@ -42,7 +42,7 @@ table td {
     padding: 2px;
 }
 
-#ship-count {
+#ship-count, #button-wrapper {
     padding: 15px;
 }
 
