@@ -255,6 +255,10 @@ function writeSingleShip(ship) {
 
 var featuresInMap = [];
 
+$(document).ready(function () {
+    $('#runAlgo').one('click', paintAllShips);
+});
+
 function addToMap(f) {
     featuresInMap.push(f);
     f.setMap(map);
@@ -271,6 +275,12 @@ function removeFromMap(f) {
 function paintAllShips() {
     shuldPaintAllInSameColor = false;
 
+    var b = $('#runAlgo');
+    b.addClass('btn-success');
+    b.removeClass('btn-primary');
+
+
+
     featuresInMap.forEach(function (f) {
         var icon = f.icon;
         icon.strokeColor = shipTypeToColor(f.shipType);
@@ -281,26 +291,27 @@ function paintAllShips() {
 function shipTypeToColor(type) {
     if (shuldPaintAllInSameColor) {
         return '#9D00FF';
-    } else if (type == "Tanker")
-        return "#f4f142";
-    else if (type == "Cargo")
-        return "#686726";
-    else if (type == "Passenger")
-        return "#28EB21";
-    else if (type == "Tow")
-        return "#21C6EB";
-    else if (type == "Base")
-        return "#EB21AB";
-    else if (type == "Container")
-        return "#75536B";
-    else if (type == "Fishing")
-        return "#A0B038";
-    else if (type == "Speed")
-        return "#F53A1D";
-    else if (type == "Army")
-        return "#E61919";
-    else if (type == "Supply")
-        return "#E68D19";
-    else
-        return "#EDEDED";
+    } else {
+        switch (type) {
+            case 'Cargo':
+            case 'Tanker':
+            case 'Supply':
+            case 'Passenger':
+            case 'Container': {
+                return '#19db04';
+            }
+            case 'Speed':
+            case 'Army': {
+                return '#ff0000';
+            }
+            case 'Tow':
+            case 'Fishing': {
+                return '#11A353';
+            }
+            case 'Base': {
+                return '#FFFFFF';
+            }
+            default: return '#931186';
+        }
+    }
 }
