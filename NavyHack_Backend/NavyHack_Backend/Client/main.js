@@ -22,6 +22,8 @@ function initMap() {
     map.mapTypes.set('styled_map', styledMapType);
     map.setMapTypeId('styled_map');
 
+    addLegand();
+
     // Fetch all ships
     fetchData(map.getBounds());
 
@@ -320,6 +322,32 @@ function shipTypeToColor(type, algoClass) {
             default: return '#931186';
         }
     }
+}
+
+function addLegand() {
+    var colorMap = {
+        'Speed': '#ff0000',
+        'Army': '#ff0000',
+        'Tow': '#11A353',
+        'Fishing': '#11A353',
+        'Cargo': '#19db04',
+        'Tanker': '#19db04',
+        'Supply': '#19db04',
+        'Passenger': '#19db04',
+        'Container': '#19db04',
+        'Unknowen': '#931186',
+        'Base': '#FFFFFF'
+    };
+
+    var legend = document.getElementById('legend');
+    for (var key in colorMap) {
+        var div = document.createElement('div');
+        div.innerHTML = `<div class="legend-item" style="background-color: ${colorMap[key]}">${key}</div>`;
+
+        legend.appendChild(div);
+    }
+
+    map.controls[google.maps.ControlPosition.TOP_LEFT].push(legend);
 }
 
 function setProgress(percent)
