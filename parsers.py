@@ -8,6 +8,9 @@ Created on Thu Dec 01 10:41:02 2016
 from __future__ import division
 import pickle
 import os
+import dateutil
+
+from datetime import datetime, timedelta, timezone
 from os.path import isfile, join
 
 
@@ -45,7 +48,8 @@ def createVectors(fileName):
             lon = []
             speed = []
             course = []
-            
+            time = []
+
             for i in range(len(b[row][0])):
                 #lat#
                 lat.append(b[row][0][i][1])
@@ -55,6 +59,9 @@ def createVectors(fileName):
                 speed.append(b[row][0][i][4])
                 #course#
                 course.append(b[row][0][i][3])
+                #time#
+                # parser.parse(b[row][0][i][5]
+                time.append(b[row][0][i][5])
             tmp.append(lat)
             tmp.append(lon)
             tmp.append(speed)
@@ -71,6 +78,7 @@ def createVectors(fileName):
                 else:
                     tmp.append(b[row][1][3])
                 tmp.append(b[row][1][-2])
+            tmp.append(time)
             vectors.append(tmp)
    return vectors
 

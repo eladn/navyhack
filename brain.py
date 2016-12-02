@@ -13,7 +13,9 @@ from sklearn.model_selection import train_test_split
 from matplotlib import pylab as plt
 import statistics
 from dist2coast import *
-from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import Lasso
+from sklearn.model_selection import cross_val_score, cross_val_predict
+from datetime  import timedelta
 
 
 '''
@@ -28,6 +30,7 @@ points[0][5] - avrage course
 points[0][6] - mmsi
 points[0][7] - label
 points[0][8] - status
+points[0][9] - status
 '''
 
 def simplePlot(points):
@@ -79,24 +82,45 @@ def speedAndCourse(points,
 
 def createAlgoVector(points):
     # d = get_dist2coast_dict()
-    x = lambda y:True if y[7] is not "" and len(y[4])>30 and len(y[2])>30 else False
-    deriv = lambda l:[l[i] - l[i+1] for i in range(len(l)-1)]
-    r = lambda vector:vector[4][:30]+vector[2][:30]+[statistics.variance(vector[4])]+[statistics.variance(vector[2])]\
-                +vector[0][:30]+vector[1][:30]
+    x = lambda y:True if y[7] is not "" and len(y[4])>50 and len(y[2])>50 else False
+    def deriv(l,t):
+        return [(l[i] - l[i+1])/float((t[i]-t[i+1])/timedelta(seconds=1)) for i in range(len(l)-1)]
+    def courseToDCourse(listush):
+        for i in range(len(listush))
+    # deriv = lambda l,t:[(l[i] - l[i+1])/(t[i]-t[i+1])/timedelta(seconds=1) for i in range(len(l)-1)]
+    r = lambda vector:\
+                vector[4][:50]+\
+                \
+                vector[2][:50]\
+                \
+                +[statistics.variance(vector[4])]+\
+                [statistics.variance(vector[2])]\
+                +vector[0][:50]+\
+                vector[1][:50]
+
     # +[dist2coast(d,vector[0][0],vector[1][0])]
-    speeds = []
+    vectors = []
     labels = []
     for vector in points:
         if(x(vector)):
-            speeds.append(r(vector))
+            vectors.append(r(vector))
             labels.append(vector[7])
-    return speeds, labels
+    return vectors, labels
 
 def runAlgo(vec,label):
     clf = svm.LinearSVC()
     x1,x2,y1,y2 = train_test_split(vec, label, test_size=0.4, random_state=0)
     clf.fit(x1,y1)
-    print(clf.score(x2,y2))
+    cvScore = cross_val_score(clf,x2,y2,cv=7)
+    print("SVM Linear SVC %f"%clf.score(x2,y2))
+    print("SVM Linear SVC with crossValidation", cvScore)
+
+    # clf = Lasso()
+    # x1, x2, y1, y2 = train_test_split(vec, label, test_size=0.4, random_state=0)
+    # cvScore = cross_val_score(clf, x1, y1)
+    # print("SVM Linear SVC %f" % clf.score(x2, y2))
+    # print("SVM Linear SVC with crossValidation %f" % cvScore)
+
     # scores = cross_val_score(clf, vec, label, cv=3)
     # print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
 
