@@ -37,3 +37,15 @@ footer {
     width: 100%;
     height: 960px;
 }
+
+table td {
+    padding: 2px;
+}
+
+#ship-count, #button-wrapper {
+    padding: 15px;
+}
+
+#runAlgo {
+    margin-right: 10px;
+}

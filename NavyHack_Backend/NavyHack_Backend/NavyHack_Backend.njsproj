@@ -52,6 +52,9 @@
   <ItemGroup>
     <Folder Include="API\" />
     <Folder Include="Client\" />
+    <Folder Include="Client\css\" />
+    <Folder Include="Client\fonts\" />
+    <Folder Include="Client\js\" />
     <Folder Include="typings\" />
     <Folder Include="typings\globals\" />
     <Folder Include="typings\globals\body-parser\" />
