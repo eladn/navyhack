@@ -277,3 +277,29 @@ function shipTypeToColor(type) {
     else
         return "#EDEDED";
 }
+
+function setProgress(percent)
+{
+    $("#progress-bar .progress-bar").attr("aria-valuenow", percent);
+    $("#progress-bar .progress-bar").css("width", percent+"%");
+	$("#progress-bar .progress-bar").text(percent+"%");
+}
+
+function doProgress(percents)
+{
+    if(percents == 0) {
+        $("#progress-bar").fadeIn();
+    }
+
+    if(percents == 100) {
+        $("#progress-bar").fadeOut();
+        return;
+    }
+
+    setProgress(percents);
+
+    setTimeout(function() {
+
+        doProgress(percents+1);
+    }, 300);
+}

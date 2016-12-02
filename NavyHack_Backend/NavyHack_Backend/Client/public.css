@@ -49,3 +49,13 @@ table td {
 #runAlgo {
     margin-right: 10px;
 }
+
+
+#progress-bar {
+    position: fixed;
+    left: 25%;
+    width: 50%;
+    top: 20px;
+    z-index: 100000;
+    display: none;
+}
