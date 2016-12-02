@@ -28,15 +28,15 @@
 </head>
 
 <body>
-
     <!-- Navigation -->
     <nav class="navbar navbar-inverse" role="navigation">
         <div class="container">
             <!-- Collect the nav links, forms, and other content for toggling -->
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <div id="button-wrapper" class="pull-left">
-                    <button id="runAlgo" type="button" class="btn btn-primary" onclick="paintAllShips()">Run Algorithm
-                    <span class="glyphicon glyphicon-globe"></span></button>
+                    <button id="runAlgo" type="button" class="btn btn-primary">Run Algorithm
+                        <span class="glyphicon glyphicon-globe"></span>
+                    </button>
                 </div>
                 <div id="ship-count" class="pull-right">
                     <span class="badge">0</span>
@@ -70,7 +70,12 @@
 
     </div>
     <!-- /.container -->
-
+    <div id="progress-bar" class="progress">
+      <div class="progress-bar" role="progressbar" aria-valuenow="0"
+      aria-valuemin="0" aria-valuemax="100" style="width:0%">
+        0%
+      </div>
+    </div>
 </body>
 
 </html>

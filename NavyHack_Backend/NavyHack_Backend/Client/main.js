@@ -70,13 +70,14 @@ function drawShipHistory(points, mmsi) {
             icon: {
                 path: google.maps.SymbolPath.CIRCLE,
                 strokeWeight: 2,
-                fillColor: shipTypeToColor(allShips[mmsi].class),
-                strokeColor: shipTypeToColor(allShips[mmsi].class),
+                fillColor: shipTypeToColor(allShips[mmsi].class, allShips[mmsi].algoClass),
+                strokeColor: shipTypeToColor(allShips[mmsi].class, allShips[mmsi].algoClass),
                 scale: 4,
             }
         });
 
         marker.shipType = allShips[mmsi].class;
+        marker.algoShipType = allShips[mmsi].algoClass;
 
         historyDrawings[mmsi].push(marker);
 
@@ -88,13 +89,14 @@ function drawShipHistory(points, mmsi) {
 
     var line = new google.maps.Polyline({
         path: shipPlanCoordinates,
-        strokeColor: shipTypeToColor(allShips[mmsi].class),
+        strokeColor: shipTypeToColor(allShips[mmsi].class, allShips[mmsi].algoClass),
         strokeOpacity: 1.0,
         strokeWeight: 2,
         zIndex: 3
     });
 
     line.shipType = allShips[mmsi].class;
+    line.algoShipType = allShips[mmsi].algoClass;
 
     addToMap(line);
    	historyDrawings[mmsi].push(line);
@@ -178,13 +180,14 @@ function writeSingleShip(ship) {
             rotation: ship.course,
             strokeWeight: 2,
             fillColor: '#00F',
-            strokeColor: shipTypeToColor(ship.class),
+            strokeColor: shipTypeToColor(ship.class, ship.algoClass),
             scale: 4,
             zIndex: 5
         }
     });
 
     marker.shipType = ship.class;
+    marker.algoShipType = ship.algoClass;
 
     marker.addListener('click', function () {
 
@@ -256,7 +259,9 @@ function writeSingleShip(ship) {
 var featuresInMap = [];
 
 $(document).ready(function () {
-    $('#runAlgo').one('click', paintAllShips);
+    $('#runAlgo').one('click', function () {
+        doProgress(0, paintAllShips);
+    });
 });
 
 function addToMap(f) {
@@ -275,24 +280,25 @@ function removeFromMap(f) {
 function paintAllShips() {
     shuldPaintAllInSameColor = false;
 
-    var b = $('#runAlgo');
-    b.addClass('btn-success');
-    b.removeClass('btn-primary');
-
-
+    $('#runAlgo').addClass('btn-success');
+    $('#runAlgo').removeClass('btn-primary');
+    $('#runAlgo > span').addClass('glyphicon-ok');
+    $('#runAlgo > span').removeClass('glyphicon-globe');
 
     featuresInMap.forEach(function (f) {
         var icon = f.icon;
-        icon.strokeColor = shipTypeToColor(f.shipType);
+        icon.strokeColor = shipTypeToColor(f.shipType, f.algoClass);
         f.setIcon(icon);
     });
 }
 
-function shipTypeToColor(type) {
-    if (shuldPaintAllInSameColor) {
+function shipTypeToColor(type, algoClass) {
+    var shipClass = algoClass || type;
+
+    if (shuldPaintAllInSameColor && algoClass) {
         return '#9D00FF';
     } else {
-        switch (type) {
+        switch (shipClass) {
             case 'Cargo':
             case 'Tanker':
             case 'Supply':
@@ -314,4 +320,29 @@ function shipTypeToColor(type) {
             default: return '#931186';
         }
     }
+}
+
+function setProgress(percent)
+{
+    $("#progress-bar .progress-bar").attr("aria-valuenow", percent);
+    $("#progress-bar .progress-bar").css("width", percent+"%");
+	$("#progress-bar .progress-bar").text(percent+"%");
+}
+
+function doProgress(percents, cb)
+{
+    if(percents == 0) {
+        $("#progress-bar").fadeIn();
+    }
+
+    if(percents == 100) {
+        $("#progress-bar").fadeOut();
+        return cb();
+    }
+
+    setProgress(percents);
+
+    setTimeout(function() {
+        doProgress(++percents, cb);
+    }, 30);
 }
