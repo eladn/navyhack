@@ -86,10 +86,14 @@ def createAlgoVector(points):
     def deriv(l,t):
         return [(l[i] - l[i+1])/float((t[i]-t[i+1])/timedelta(seconds=1)) for i in range(len(l)-1)]
     def courseToDCourse(listush):
-        for i in range(len(listush))
+        l = []
+        for i in range(len(listush)-1):
+            l.append((listush[i]-listush[i+1])%360)
+        return l
+
     # deriv = lambda l,t:[(l[i] - l[i+1])/(t[i]-t[i+1])/timedelta(seconds=1) for i in range(len(l)-1)]
-    r = lambda vector:\
-                vector[4][:50]+\
+    r = lambda vector: \
+                courseToDCourse(vector[4][:50])+\
                 \
                 vector[2][:50]\
                 \
