@@ -91,39 +91,64 @@ def grab_data_from_shipfinder(ships):
     return {'nr_items': nr_items, 'nr_new_items': nr_new_items, 'nr_updated_items': nr_updated_items}
 
 
-# notice: we add keys to tis dict on runtime: last_area_stopped_because_req_limit, geo_areas[i].last_unfinished_cover
+# List here all the areas we want to grab info from.
+# The reason for dividing areas, and not grabbing the whole map, is that `myshiptracking` cannot send us all the
+#   data in one request. hence we need to divide it into cells. dividing the whole map into cells will generate
+#   too many request (request per each cell).
+# Additionally, for a given cell, we choose a `zoom`. `myshiptracking` send us partial (maybe choosen randomly)
+#   updates inside each cell correspondly to the given zoom (bigger zoom - more data for each cell).
+#   if we choose a big zoom, that has too much data in it, `myshiptracking` will return nothing.
+#   hence we change the zoom for each cell individually on runtime, depending on the results from `myshiptracking`.
+# Notice: we add keys to this dict on runtime like: last_area_stopped_because_req_limit,
+#           geo_areas[i].last_unfinished_cover, geo_areas[i].nr_rows ,geo_areas[i].nr_cols
 myshiptracking_data = {
     'geo_areas': [
         {
+            'name': 'Mediterranean Sea',
             'min_lat': 28.84750,
             'min_lon': -12.97300,
             'max_lat': 46.72501,
             'max_lon': 38.27735,
+
+            # starting default zoom for each cell in this area.
+            # if the result is empty, we change the zoom correspondly for each cell and store it in `last_zoom_per_cell`
+            # myshiptracking returns nothing if we choose a big zoom and the result set is too big.
+            # more info in the big remark above.
             'zoom': 7,
+            'last_zoom_per_cell': {},
+
+            # describes how to divide this area to cells.
+            # if we want to work with big zoom (like 10) we want delta to be around 2.
             'lat_delta': 2,
             'lon_delta': 2,
-            'max_nr_requests_per_cycle': 40,
-            'last_zoom_per_cell': {}
+
+            # if there are more cells than this limit, next call we start from the cell that hasn't finished yet.
+            'max_nr_requests_per_cycle': 40
         }
     ],
     'max_tot_nr_requests_per_cycle': 50,
     'min_zoom': 5,
+    'max_zoom': 10,
     'nr_succeed_request_to_inc_zoom': 5
 }
 
 
-def myshiptracking_init():
+def myshiptracking_data_init():
     for area in myshiptracking_data['geo_areas']:
         area['nr_rows'] = ceil((ceil(area['max_lat']) - floor(area['min_lat'])) / area['lat_delta'])
         area['nr_cols'] = ceil((ceil(area['max_lon']) - floor(area['min_lon'])) / area['lon_delta'])
+        if 'last_zoom_per_cell' not in area or type(area['last_zoom_per_cell']) != dict:
+            area['last_zoom_per_cell'] = dict()
+        if 'zoom' not in area or type(area['zoom'] != int) or (area['zoom'] < myshiptracking_data['min_zoom'] or area['zoom'] > myshiptracking_data['max_zoom']):
+            area['zoom'] = 7
 
 
 
-
-
+# TODO: Save for each area time delta between two times we finished working on them.
+# TODO: Calc statics for those deltas and alert when it is too big (more that 2 mins we loose data)
 def grab_data_from_myshiptracking(ships):
     max_tot_nr_requests_per_cycle = myshiptracking_data['max_tot_nr_requests_per_cycle']
-    tot_nr_requests = 0
+    tot_nr_requests = 0  # we count it in order to enforce the total #req limit.
     ret_stats = {'nr_items': 0, 'nr_new_items': 0, 'nr_updated_items': 0}
 
     areas = myshiptracking_data['geo_areas']
@@ -148,15 +173,16 @@ def grab_data_from_myshiptracking(ships):
         nr_cols = area['nr_cols']
         max_nr_requests_per_cycle = area['max_nr_requests_per_cycle']
 
-        nr_requests = 0
+        nr_requests = 0  # we count it in order to enforce the #req limit per this area.
 
-        start_col, start_row = 1, 1
+        # if we didn't finished grabbing this cell last time because of #req limit, start from the cell we stopped at.
+        start_col, start_row = 0, 0
         if 'last_unfinished_cover' in area:
             start_col, start_row = area['last_unfinished_cover']['next_col'], area['last_unfinished_cover']['next_row']
 
         flag_end_area = False
-        for row in range(start_row, nr_rows-1):
-            for col in range(start_col, nr_cols-1):
+        for row in chain(range(start_row, nr_rows), range(0, start_row)):
+            for col in range(start_col if row == start_row else 0, nr_cols):
                 area['last_unfinished_cover'] = {'next_row': row, 'next_col': col}
                 if tot_nr_requests >= max_tot_nr_requests_per_cycle:
                     myshiptracking_data['last_area_stopped_because_req_limit'] = area_idx
@@ -183,8 +209,9 @@ def grab_data_from_myshiptracking(ships):
 
                     # increment zoom for next time if we succeeded with current zoom for `NR_SUCCEED_REQUEST_TO_INC_ZOOM` times
                     if times_succeeded_with_this_zoom+1 >= myshiptracking_data['nr_succeed_request_to_inc_zoom']:
-                        area['last_zoom_per_cell'][(row, col)] = (max(1, custom_zoom + 1), 0)
+                        area['last_zoom_per_cell'][(row, col)] = (min(myshiptracking_data['max_zoom'], custom_zoom + 1), 0)
 
+                # add statistics for this cell to the statics sum for all iterations in this call.
                 if stat is not None:
                     ret_stats['nr_items'] += stat['nr_items']
                     ret_stats['nr_new_items'] += stat['nr_new_items']
@@ -510,7 +537,7 @@ def args_parser():
 
 
 def init():
-    myshiptracking_init()
+    myshiptracking_data_init()
 
 if __name__ == "__main__":
     parser = args_parser()
