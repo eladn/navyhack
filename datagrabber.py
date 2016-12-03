@@ -347,15 +347,16 @@ def grab_data_for_specific_ship(ships, mmsi):
     NAME = 0
     DESTINATION = 3
     NAV_STATUS = 4
-    INFO_FOUNT = 5
+    INFO_FOUND = 5
+    NR_SHIP_INFO_FIELDS = 6
 
     url = "http://www.myshiptracking.com/requests/vesseldetails.php?type=json&mmsi="+str(mmsi)
     # print(url)
 
     ships['infoSearch'].remove(mmsi)
     ships['infoModified'].add(mmsi)
-    results = [""] * 6
-    results[INFO_FOUNT] = 0
+    results = [""] * NR_SHIP_INFO_FIELDS
+    results[INFO_FOUND] = 0  # we add the ship to ship_info also if it is not found here, with zero `info_found` flag.
     ships['information'][mmsi] = results
 
     response = httpPool.request('GET', url)
@@ -369,7 +370,7 @@ def grab_data_for_specific_ship(ships, mmsi):
         print('myshiptracking ship_info: json parse error. url: %s' % url, file=sys.stderr)
         return None
 
-    if "V" not in j:
+    if type(j) != dict or "V" not in j or type(j["V"]) != dict:
         print('myshiptracking ship_info: json parse error. no `V`. url: %s' % url, file=sys.stderr)
         return None
 
@@ -380,7 +381,7 @@ def grab_data_for_specific_ship(ships, mmsi):
         results[NAME] = safe_cast(j["NAME"], str)
         results[DESTINATION] = safe_cast(j["DESTINATION"], str)
         results[NAV_STATUS] = safe_cast(j["NAV_STATUS"], str)
-        results[INFO_FOUNT] = 1
+        results[INFO_FOUND] = 1
     except Exception:
         return None
 
