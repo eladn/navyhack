@@ -464,27 +464,22 @@ def iterative_interrupted_data_grabber(ships, db, sleep_time=5, noinfo=False, no
         iteration += 1
         print("Running loop number %s                                                       " % iteration, end="\r")
 
-        stats = None
         if not noloc:
             stats = grab_data_from_shipfinder(ships)
-        if stats is not None:
-            print("Running loop number {}  [ shipfinder: tot:{} updated:{} new:{} ]              ".format(
-                iteration, stats['nr_items'], stats['nr_updated_items'], stats['nr_new_items']), end="\r")
+            if stats is not None:
+                print("Running loop number {}  [ shipfinder: tot:{} updated:{} new:{} ]              ".format(
+                    iteration, stats['nr_items'], stats['nr_updated_items'], stats['nr_new_items']), end="\r")
 
-        stats = None
-        if not noloc:
             stats = grab_data_from_myshiptracking(ships)
-        if stats is not None:
-            print("Running loop number {}  [ myshiptracking: tot:{} updated:{} new:{} ]            ".format(
-                iteration, stats['nr_items'], stats['nr_updated_items'], stats['nr_new_items']), end="\r")
+            if stats is not None:
+                print("Running loop number {}  [ myshiptracking: tot:{} updated:{} new:{} ]            ".format(
+                    iteration, stats['nr_items'], stats['nr_updated_items'], stats['nr_new_items']), end="\r")
 
-        infoStats = None
         if not noinfo:
             infoStats = updateInfoSearch(ships)
-        if infoStats is not None:
-            print('Running loop number {}  [ myshiptracking ship info grabbed: {} ]              '.format(
-                iteration, infoStats[1]), end="\r")
-        #('infoState:{}'.format(infoStats[1]) if infoStats[1] is not 0 else '')
+            if infoStats is not None:
+                print('Running loop number {}  [ myshiptracking ship info grabbed: {} ]              '.format(
+                    iteration, infoStats[1]), end="\r")
 
         if db is not None:
             if not noloc:
