@@ -8,10 +8,10 @@ from pytz import timezone
 from utils import db_connect
 from utils import safe_cast
 from math import ceil, floor
+from itertools import chain
 
 MAX_NR_ROWS_PER_UPDATE = 10000
 MAX_NR_SHIPS_INFO_GRAB = 60
-NR_SUCCEED_REQUEST_TO_INC_ZOOM = 5
 
 MMSI = 0
 LAT = 0
@@ -91,6 +91,7 @@ def grab_data_from_shipfinder(ships):
     return {'nr_items': nr_items, 'nr_new_items': nr_new_items, 'nr_updated_items': nr_updated_items}
 
 
+# notice: we add keys to tis dict on runtime: last_area_stopped_because_req_limit, geo_areas[i].last_unfinished_cover
 myshiptracking_data = {
     'geo_areas': [
         {
@@ -106,7 +107,8 @@ myshiptracking_data = {
         }
     ],
     'max_tot_nr_requests_per_cycle': 50,
-    'min_zoom': 5
+    'min_zoom': 5,
+    'nr_succeed_request_to_inc_zoom': 5
 }
 
 
@@ -124,7 +126,20 @@ def grab_data_from_myshiptracking(ships):
     tot_nr_requests = 0
     ret_stats = {'nr_items': 0, 'nr_new_items': 0, 'nr_updated_items': 0}
 
-    for area in myshiptracking_data['geo_areas']:
+    areas = myshiptracking_data['geo_areas']
+    nr_areas = len(areas)
+    if nr_areas < 1:
+        return ret_stats  # no areas to check
+
+    # start from last area we didn't finish last call because of total requests limit.
+    areas_work_order = range(0, nr_areas)
+    if 'last_area_stopped_because_req_limit' in myshiptracking_data:
+        assert myshiptracking_data['last_area_stopped_because_req_limit'] < nr_areas
+        areas_work_order = chain(range(myshiptracking_data['last_area_stopped_because_req_limit'], nr_areas),
+                                 range(0, myshiptracking_data['last_area_stopped_because_req_limit']))
+
+    for area_idx in areas_work_order:
+        area = myshiptracking_data['geo_areas'][area_idx]
         start_lat = floor(area['min_lat'])
         start_lon = floor(area['min_lon'])
         lat_delta = area['lat_delta']
@@ -144,6 +159,7 @@ def grab_data_from_myshiptracking(ships):
             for col in range(start_col, nr_cols-1):
                 area['last_unfinished_cover'] = {'next_row': row, 'next_col': col}
                 if tot_nr_requests >= max_tot_nr_requests_per_cycle:
+                    myshiptracking_data['last_area_stopped_because_req_limit'] = area_idx
                     return ret_stats
                 if nr_requests >= max_nr_requests_per_cycle:
                     flag_end_area = True
@@ -157,15 +173,16 @@ def grab_data_from_myshiptracking(ships):
                                                    start_lat+row*lat_delta, start_lat+(row+1)*lat_delta,
                                                    start_lon+col*lon_delta, start_lon+(col+1)*lon_delta, custom_zoom)
 
-                # we'll try next time with a lower zoom
                 if stat is None:
+                    # failed to grab. we'll try next time with a lower zoom.
                     area['last_zoom_per_cell'][(row, col)] = (max(myshiptracking_data['min_zoom'], custom_zoom-1), 0)
                 elif (row, col) in area['last_zoom_per_cell']:
+                    # succeed to grab. update number of sequental succeed grabs
                     times_succeeded_with_this_zoom = area['last_zoom_per_cell'][(row, col)][1]
                     area['last_zoom_per_cell'][(row, col)] = (custom_zoom, times_succeeded_with_this_zoom+1)
 
                     # increment zoom for next time if we succeeded with current zoom for `NR_SUCCEED_REQUEST_TO_INC_ZOOM` times
-                    if times_succeeded_with_this_zoom+1 >= NR_SUCCEED_REQUEST_TO_INC_ZOOM:
+                    if times_succeeded_with_this_zoom+1 >= myshiptracking_data['nr_succeed_request_to_inc_zoom']:
                         area['last_zoom_per_cell'][(row, col)] = (max(1, custom_zoom + 1), 0)
 
                 if stat is not None:
@@ -180,7 +197,10 @@ def grab_data_from_myshiptracking(ships):
 
         if not flag_end_area and 'last_unfinished_cover' in area:
             del area['last_unfinished_cover']
-
+            
+    # we finished this call completely without being stopped because of tot requests nr limit.
+    if 'last_area_stopped_because_req_limit' in myshiptracking_data:
+        del myshiptracking_data['last_area_stopped_because_req_limit']
     return ret_stats
 
 
