@@ -25,7 +25,7 @@ def keyToVals(key):
 
 
 
-ships = loadFile("bestPickleEver1.txt")
+ships = loadFile("data/bestPickleEver1.txt")
 # print(len(ships))
 # print(ships)
 # SELECT mmsi, lat, lon, class, course, speed, rtime  FROM ships_view

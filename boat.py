@@ -46,7 +46,7 @@ def makeItWorks(db, ships):
         vessel_type_to_ship_type[row[0]] = row[1]
     cursor.close()
     print('nr of vessel_types: %s' % len(vessel_type_to_ship_type))
-    with open("vessel_type_to_ship_type.pkl","wb") as pf:
+    with open("data/vessel_type_to_ship_type.pkl","wb") as pf:
         pickle.dump(vessel_type_to_ship_type, pf)
 
     cursor = db.cursor()
@@ -82,27 +82,27 @@ def makeItWorks(db, ships):
     lower = 0
     print('nr of mmsi in dict (after deleting rows which are not in info): %s' % len(j))
     partial = int((1/6) * len(j))
-    with open("bestPickleEver1.txt","wb") as f:
+    with open("data/bestPickleEver1.txt","wb") as f:
         pickle.dump(j[0:5000],f)
-    with open("bestPickleEver%s.txt" % 2, "wb") as f:
+    with open("data/bestPickleEver%s.txt" % 2, "wb") as f:
         pickle.dump(j[5000:10000], f)
-    with open("bestPickleEver%s.txt" % 3, "wb") as f:
+    with open("data/bestPickleEver%s.txt" % 3, "wb") as f:
         pickle.dump(j[10000:15000], f)
-    with open("bestPickleEver%s.txt"%4,"wb") as f:
+    with open("data/bestPickleEver%s.txt"%4,"wb") as f:
         pickle.dump(j[15000:20000],f)
-    with open("bestPickleEver%s.txt"%5,"wb") as f:
+    with open("data/bestPickleEver%s.txt"%5,"wb") as f:
         pickle.dump(j[20000:25000],f)
-    with open("bestPickleEver%s.txt"%6,"wb") as f:
+    with open("data/bestPickleEver%s.txt"%6,"wb") as f:
         pickle.dump(j[25000:30000],f)
-    with open("bestPickleEver%s.txt" % 7, "wb") as f:
+    with open("data/bestPickleEver%s.txt" % 7, "wb") as f:
         pickle.dump(j[30000:35000], f)
-    with open("bestPickleEver%s.txt" % 8, "wb") as f:
+    with open("data/bestPickleEver%s.txt" % 8, "wb") as f:
         pickle.dump(j[35000:40000], f)
-    with open("bestPickleEver%s.txt" % 9, "wb") as f:
+    with open("data/bestPickleEver%s.txt" % 9, "wb") as f:
         pickle.dump(j[40000:45000], f)
-    with open("bestPickleEver%s.txt" % 10, "wb") as f:
+    with open("data/bestPickleEver%s.txt" % 10, "wb") as f:
         pickle.dump(j[45000:50000], f)
-    with open("bestPickleEver%s.txt" % 11, "wb") as f:
+    with open("data/bestPickleEver%s.txt" % 11, "wb") as f:
         pickle.dump(j[50000:-1], f)
 
 

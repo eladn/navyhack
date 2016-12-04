@@ -85,7 +85,7 @@ def createVectors(fileName):
 
 def collectFiles(folder=""):
     vectors = []
-    onlyfiles  = [f for f in os.listdir('.') if os.path.isfile(f)]
+    onlyfiles  = [f for f in os.listdir('data/.') if os.path.isfile(f)]
     for f in onlyfiles:
         if (str(f)[:4] == "best"):
             vectors +=createVectors(str(f))
