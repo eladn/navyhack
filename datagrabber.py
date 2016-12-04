@@ -10,6 +10,10 @@ from utils import safe_cast
 from math import ceil, floor
 from itertools import chain
 
+# TODO: Use smart logger instead of error prints to stderr. send email in case of many failures.
+# TODO: Use `asyncio` lib for events loop & http async requests. more details below (search for `TODO`)
+# TODO: Increase the wait time if many requests fail. Define wait time for each source.
+
 MAX_NR_ROWS_PER_UPDATE = 10000
 MAX_NR_SHIPS_INFO_GRAB = 60
 
@@ -458,6 +462,11 @@ def update_info_to_db(ships, db):
     return tot_affected_rows
 
 
+# TODO: Use `asyncio` library to create multiple async HTTP requests without waiting for each request to finish.
+# TODO:  for each block of requests, after the last request (from this block) finishes, add a timed event that calls
+# TODO:  the function that will make the next requests block.
+# TODO:  This event will be timed to launch based on the wanted delta between requests blocks,
+# TODO:  and based on the time that the whole last block took (so we won't loose data).
 def iterative_interrupted_data_grabber(ships, db, sleep_time=5, noinfo=False, noloc=False):
     iteration = 0
     while True:
